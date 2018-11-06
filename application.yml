@@ -1,0 +1,33 @@
+#please don't touch this
+strings:
+  residenceTypeHeader: "rodzaj wniosku o legalizację pobytu []"
+  residenceTypeTemporary: "pobyt czasowy"
+  residenceTypePermanent: "pobyt stały"
+  nameSurnameHeader: "nazwisko i imię/ surname and name"
+  citizenshipHeader: "OBYWATELSTWO"
+  dateOfBirthHeader: "data urodzenia/ Date of birth "
+  phoneHeader: "NUMER TELEFONU KONTAKTOWEGO"
+  passportHeader: "Seria i numer paszportu"
+  residenceCardHeader: "SERIA I NUMER TYTUŁU POBYTOWEGO"
+  dataProcessingHeader: "wyrażenie zgody na przetwarzanie danych osobowych []"
+  dataProcessingValue: "Wyrażam dobrowolną zgodę na przetwarzanie dotyczących mnie danych osobowych przez Administratora, którym jest Wojewoda Dolnośląski, wykonujący swoje zadania przy pomocy Dolnośląskiego Urzędu Wojewódzkiego we Wrocławiu, zlokalizowanego we Wrocławiu przy pl. Powstańców Warszawy 1, w zakresie: nazwiska, imienia, nr pesel, w celu dokonania rezerwacji wizyty."
+  additionalApplicationsHeader: "Dodatkowe wnioski objęte rezerwacją, proszę zaznaczyć właściwe okienko []"
+  additionalApplicationTypeChild: "dziecko "
+  additionalApplicationTypeSpouse: "żona/mąż     "
+  additionalApplicationTypeChildren: "dzieci"
+
+parallelismFactor: 4 #minimum 1
+
+cities:
+  - name: "Jelenia Góra"
+    queue: "102"
+    id: "9"
+  - name: "Legnica"
+    queue: "95"
+    id: "15"
+  - name: "Wałbrzych"
+    queue: "96"
+    id: "11"
+  - name: "Wrocław"
+    queue: "17"
+    id: "1"

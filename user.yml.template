@@ -1,0 +1,11 @@
+username: "duw username"                        #mandatory. login
+password: "duw password"                        #mandatory. password
+name : "My Name"                                #mandatory. first name
+surname: "My Surname"                           #mandatory. last name
+dateOfBirth : "1984-09-27"                      #mandatory. date of birth. format: yyyy-MM-dd
+citizenship : "Ukraińskie"                      #mandatory. citizenship
+phone : "+48123456789"                          #mandatory. contact phone number
+passport : "AA123456"                           #mandatory. passport number
+residenceCard : "RP12345678"                    #optional.  residence card number. remove if not applicable
+residenceType : "temporary"                     #mandatory. type of application. variants: temporary, permanent
+additionalApplications : ["child", "spouse"]    #optional. variants: child, spouse, children. leave empty if not applicable
