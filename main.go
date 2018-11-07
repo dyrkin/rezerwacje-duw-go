@@ -46,8 +46,8 @@ func acceptTerms(city *config.City) {
 	acceptTermsRequest.SafeSend()
 }
 
-func latestDate(city config.City) string {
-	acceptTerms(&city)
+func latestDate(city *config.City) string {
+	acceptTerms(city)
 	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/pol/queues/%s/%s", city.Queue, city.Id)
 	cityRequest := session.Get(url, nil)
 	cityHTML := cityRequest.SafeSend().AsString()
@@ -179,16 +179,26 @@ func await() {
 	fmt.Scanln(&input)
 }
 
+func collectActiveCities() map[*config.City]string {
+	citiesToProcess := map[*config.City]string{}
+	for _, city := range applicationConf.Cities {
+		cityDate := latestDate(city)
+		if validDate(cityDate) {
+			log.Infof("Going to process city %q for date %q", city.Name, cityDate)
+			citiesToProcess[city] = cityDate
+		} else {
+			log.Infof("Ignoring city %q because there is weekend", city.Name)
+		}
+	}
+	return citiesToProcess
+}
+
 func main() {
 	if login() {
-		for _, city := range applicationConf.Cities {
-			cityDate := latestDate(city)
-			if validDate(cityDate) {
-				for i := 0; i < applicationConf.ParallelismFactor; i++ {
-					go processCity(city, cityDate)
-				}
-			} else {
-				log.Infof("Ignoring city %q because there is weekend", city.Name)
+		activeCities := collectActiveCities()
+		for i := 0; i < applicationConf.ParallelismFactor; i++ {
+			for city, date := range activeCities {
+				go processCity(*city, date)
 			}
 		}
 	}

@@ -35,7 +35,7 @@ type Strings struct {
 type ApplicationConfig struct {
 	Strings           Strings
 	ParallelismFactor int
-	Cities            []City
+	Cities            []*City
 }
 
 type UserConfig struct {
