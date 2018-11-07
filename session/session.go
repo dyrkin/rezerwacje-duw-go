@@ -13,14 +13,18 @@ import (
 	"github.com/lunny/csession"
 )
 
+//Headers kay/value storage
 type Headers map[string]string
 
+//Cookies kay/value storage
 type Cookies map[string]string
 
+//RequestWrapper wraps http.Request to add new functionality
 type RequestWrapper struct {
 	Request *http.Request
 }
 
+//ResponseWrapper wraps http.Response to add new functionality
 type ResponseWrapper struct {
 	Response *http.Response
 }
@@ -58,6 +62,7 @@ func setHeaders(request *http.Request, headers Headers) {
 	}
 }
 
+//Post creates post request
 func Post(url string, body io.Reader, headers Headers) *RequestWrapper {
 	req, _ := http.NewRequest("POST", url, body)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -65,24 +70,29 @@ func Post(url string, body io.Reader, headers Headers) *RequestWrapper {
 	return &RequestWrapper{req}
 }
 
+//Get creates get request
 func Get(url string, headers Headers) *RequestWrapper {
 	req, _ := http.NewRequest("GET", url, nil)
 	setHeaders(req, headers)
 	return &RequestWrapper{req}
 }
 
+//Form represents key/value post request body
 func Form(body url.Values) io.Reader {
 	return strings.NewReader(body.Encode())
 }
 
+//Body represents simple string post request body
 func Body(body string) io.Reader {
 	return strings.NewReader(body)
 }
 
+//Send simply sends http request
 func (r *RequestWrapper) Send() (*http.Response, error) {
 	return client.Do(r.Request)
 }
 
+//SafeSend safely sends http request. In case of error it tries again
 func (r *RequestWrapper) SafeSend() *ResponseWrapper {
 	resp, err := r.Send()
 	if err != nil {
@@ -94,10 +104,12 @@ func (r *RequestWrapper) SafeSend() *ResponseWrapper {
 	return &ResponseWrapper{resp}
 }
 
+//AsString converts http response to string
 func (r *ResponseWrapper) AsString() string {
 	return string(r.AsBytes())
 }
 
+//AsBytes converts http response to byte array
 func (r *ResponseWrapper) AsBytes() []byte {
 	defer r.Response.Body.Close()
 	resp, _ := ioutil.ReadAll(r.Response.Body)
