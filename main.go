@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"sync"
 	"time"
 
 	"rezerwacje-duw-go/captcha"
@@ -18,6 +19,8 @@ var applicationConf = config.ApplicationConf
 
 var dateEventsRegex = regexp.MustCompile("var dateEvents\\s+=\\s+(?P<Events>.*?);")
 var slotsRegex = regexp.MustCompile("lock\\(.*?>([\\d:]+)<\\/a>")
+
+var mutex = &sync.Mutex{}
 
 func extractLatestDate(cityHTML string) string {
 	groups := dateEventsRegex.FindStringSubmatch(cityHTML)
@@ -42,8 +45,8 @@ func acceptTerms(city *config.City) {
 	acceptTermsRequest.SafeSend()
 }
 
-func latestDate(city *config.City) string {
-	acceptTerms(city)
+func latestDate(city config.City) string {
+	acceptTerms(&city)
 	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/pol/queues/%s/%s", city.Queue, city.Id)
 	cityRequest := session.Get(url, nil)
 	cityHTML := cityRequest.SafeSend().AsString()
@@ -103,16 +106,30 @@ func reserve(city *config.City, time string, slot string) {
 		log.Infof("User data posted for city %q, slot %q and time %q", city.Name, slot, time)
 		confirmTerm(city, slot)
 		log.Infof("Reservation completed for city %q, slot %q and time %q. Check your email or DUW site", city.Name, slot, time)
+	} else {
+		mutex.Unlock()
 	}
 }
 
+func tryLock(city *config.City, time string) string {
+	slot := make(chan string)
+	for i := 0; i < 5; i++ {
+		go func() {
+			body := url.Values{"time": {time}, "queue": {city.Queue}}
+			lockRequest := session.Post("http://rezerwacje.duw.pl/reservations/reservations/lock", session.Form(body), nil)
+			slot <- lockRequest.SafeSend().AsString()
+		}()
+	}
+	return <-slot
+}
+
 func lock(city *config.City, time string) string {
+	mutex.Lock()
 	log.Infof("Locking term %s for city %q", time, city.Name)
-	body := url.Values{"time": {time}, "queue": {city.Queue}}
-	lockRequest := session.Post("http://rezerwacje.duw.pl/reservations/reservations/lock", session.Form(body), nil)
-	lockResponse := lockRequest.SafeSend().AsString()
+	lockResponse := tryLock(city, time)
 	if lockResponse == "FAIL" {
 		log.Infof("Unable to lock term %q for city %q", time, city.Name)
+		mutex.Unlock()
 		return ""
 	}
 	slot := lockResponse[3:]
@@ -128,12 +145,13 @@ func makeReservation(city *config.City, date string, term string) {
 	}
 }
 
-func processCity(city *config.City, date string) {
+func processCity(city config.City, date string) {
 	log.Infof("Scanning terms for city %q and date %q", city.Name, date)
-	terms := terms(city, date)
+	terms := terms(&city, date)
 	for _, term := range terms {
-		makeReservation(city, date, term)
+		makeReservation(&city, date, term)
 	}
+	go processCity(city, date)
 }
 
 func login() bool {
@@ -149,21 +167,26 @@ func parseDate(dateStr string) time.Time {
 	return date
 }
 
-func main() {
+func await() {
+	var input string
+	fmt.Scanln(&input)
+}
 
-	// captcha.Test()
+func main() {
 	loggedIn := login()
 	if loggedIn {
 		for _, city := range applicationConf.Cities {
-			cityDate := latestDate(&city)
+			cityDate := latestDate(city)
 			date := parseDate(cityDate)
 			dayOfWeek := date.Weekday()
 			if (dayOfWeek != time.Saturday) && (dayOfWeek != time.Sunday) {
-				log.Info(date)
-				processCity(&city, cityDate)
+				for i := 0; i < applicationConf.ParallelismFactor; i++ {
+					go processCity(city, cityDate)
+				}
 			} else {
 				log.Infof("Ignoring city %q because there is %s", city.Name, dayOfWeek)
 			}
 		}
 	}
+	await()
 }
