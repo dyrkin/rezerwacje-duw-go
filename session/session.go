@@ -99,22 +99,20 @@ func (r *RequestWrapper) SafeSend() *ResponseWrapper {
 		log.Errorf("Error occurred while sending request. Try again\n%s", err)
 		return r.SafeSend()
 	}
-	debugRequest("Sending request:\n%s\n\n", r.Request)
-	debugResponse("Received response:\n%s\n\n", response)
+	debugHTTP("Sending request:\n%s", r.Request)
+	debugHTTP("Received response:\n%s", response)
 	return &ResponseWrapper{response}
 }
 
-func debugRequest(format string, request *http.Request) {
-	bytes, err := httputil.DumpRequest(request, true)
-	if err == nil {
-		log.Debugf(format, bytes)
-	} else {
-		log.Errorf(format, err)
+func debugHTTP(format string, r interface{}) {
+	var bytes []byte
+	var err error
+	switch r := r.(type) {
+	case *http.Request:
+		bytes, err = httputil.DumpRequest(r, true)
+	case *http.Response:
+		bytes, err = httputil.DumpResponse(r, true)
 	}
-}
-
-func debugResponse(format string, response *http.Response) {
-	bytes, err := httputil.DumpResponse(response, true)
 	if err == nil {
 		log.Debugf(format, bytes)
 	} else {

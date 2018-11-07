@@ -19,13 +19,6 @@ func Errorf(format string, v ...interface{}) {
 }
 
 func Infof(format string, v ...interface{}) {
+	Debugf(format, v...)
 	stdout.Printf(format+"\n", v...)
-}
-
-func Infoln(msg string) {
-	stdout.Printf(msg)
-}
-
-func Info(v ...interface{}) {
-	stdout.Print(v...)
 }
