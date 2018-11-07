@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -127,14 +128,14 @@ func lock(city *config.City, time string) string {
 	mutex.Lock()
 	log.Infof("Locking term %s for city %q", time, city.Name)
 	lockResult := tryLock(city, time)
-	if lockResult == "FAIL" {
-		log.Infof("Unable to lock term %q for city %q", time, city.Name)
-		mutex.Unlock()
-		return ""
+	if strings.HasPrefix(lockResult, "OK") {
+		slot := lockResult[3:]
+		log.Infof("Term is locked. City %q, time %q, slot %q", city.Name, time, slot)
+		return slot
 	}
-	slot := lockResult[3:]
-	log.Infof("Term is locked. City %q, time %q, slot %q", city.Name, time, slot)
-	return slot
+	log.Infof("Unable to lock term %q for city %q. Reason %q", time, city.Name, lockResult)
+	mutex.Unlock()
+	return ""
 }
 
 func makeReservation(city *config.City, date string, term string) {

@@ -94,14 +94,32 @@ func (r *RequestWrapper) Send() (*http.Response, error) {
 
 //SafeSend safely sends http request. In case of error it tries again
 func (r *RequestWrapper) SafeSend() *ResponseWrapper {
-	resp, err := r.Send()
+	response, err := r.Send()
 	if err != nil {
 		log.Errorf("Error occurred while sending request. Try again\n%s", err)
 		return r.SafeSend()
 	}
-	log.DebugHttp(httputil.DumpRequest(r.Request, true))
-	log.DebugHttp(httputil.DumpResponse(resp, true))
-	return &ResponseWrapper{resp}
+	debugRequest("Sending request:\n%s\n\n", r.Request)
+	debugResponse("Received response:\n%s\n\n", response)
+	return &ResponseWrapper{response}
+}
+
+func debugRequest(format string, request *http.Request) {
+	bytes, err := httputil.DumpRequest(request, true)
+	if err == nil {
+		log.Debugf(format, bytes)
+	} else {
+		log.Errorf(format, err)
+	}
+}
+
+func debugResponse(format string, response *http.Response) {
+	bytes, err := httputil.DumpResponse(response, true)
+	if err == nil {
+		log.Debugf(format, bytes)
+	} else {
+		log.Errorf(format, err)
+	}
 }
 
 //AsString converts http response to string
