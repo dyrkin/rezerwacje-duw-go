@@ -112,27 +112,27 @@ func reserve(city *config.City, time string, slot string) {
 }
 
 func tryLock(city *config.City, time string) string {
-	slot := make(chan string)
+	lockResult := make(chan string)
 	for i := 0; i < 5; i++ {
 		go func() {
 			body := url.Values{"time": {time}, "queue": {city.Queue}}
 			lockRequest := session.Post("http://rezerwacje.duw.pl/reservations/reservations/lock", session.Form(body), nil)
-			slot <- lockRequest.SafeSend().AsString()
+			lockResult <- lockRequest.SafeSend().AsString()
 		}()
 	}
-	return <-slot
+	return <-lockResult
 }
 
 func lock(city *config.City, time string) string {
 	mutex.Lock()
 	log.Infof("Locking term %s for city %q", time, city.Name)
-	lockResponse := tryLock(city, time)
-	if lockResponse == "FAIL" {
+	lockResult := tryLock(city, time)
+	if lockResult == "FAIL" {
 		log.Infof("Unable to lock term %q for city %q", time, city.Name)
 		mutex.Unlock()
 		return ""
 	}
-	slot := lockResponse[3:]
+	slot := lockResult[3:]
 	log.Infof("Term is locked. City %q, time %q, slot %q", city.Name, time, slot)
 	return slot
 }
@@ -167,24 +167,27 @@ func parseDate(dateStr string) time.Time {
 	return date
 }
 
+func validDate(cityDate string) bool {
+	date := parseDate(cityDate)
+	dayOfWeek := date.Weekday()
+	return (dayOfWeek != time.Saturday) && (dayOfWeek != time.Sunday)
+}
+
 func await() {
 	var input string
 	fmt.Scanln(&input)
 }
 
 func main() {
-	loggedIn := login()
-	if loggedIn {
+	if login() {
 		for _, city := range applicationConf.Cities {
 			cityDate := latestDate(city)
-			date := parseDate(cityDate)
-			dayOfWeek := date.Weekday()
-			if (dayOfWeek != time.Saturday) && (dayOfWeek != time.Sunday) {
+			if validDate(cityDate) {
 				for i := 0; i < applicationConf.ParallelismFactor; i++ {
 					go processCity(city, cityDate)
 				}
 			} else {
-				log.Infof("Ignoring city %q because there is %s", city.Name, dayOfWeek)
+				log.Infof("Ignoring city %q because there is weekend", city.Name)
 			}
 		}
 	}

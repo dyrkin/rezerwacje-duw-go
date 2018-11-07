@@ -7,7 +7,6 @@ import (
 
 var debugFile, _ = os.OpenFile("debug.log", os.O_CREATE|os.O_APPEND, 0666)
 
-// var debug = logger.Init("DebugLogger", false, true, debugFile)
 var debug = stdlog.New(debugFile, "", stdlog.LstdFlags)
 var stdout = stdlog.New(os.Stdout, "", stdlog.LstdFlags)
 
