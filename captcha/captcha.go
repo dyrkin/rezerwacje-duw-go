@@ -21,22 +21,22 @@ var seven = []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\f\x00\x00\x0
 var eight = []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\f\x00\x00\x00\x10\x02\x03\x00\x00\x00_\x0fv\x94\x00\x00\x00\fPLTE\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf8\x8c\x02M\x00\x00\x00@IDATx\xdacd\xe0\x9a\xc6İ\x80\x81\x89\x89\x81\x81\x89\xe1[\a\x13\xc7\x03 \xcdP\xc1\xf4C\x8b\x81\x89\x03$\x06\x04Z@\x05+\x18\x14\x98~\x80\xf9\r\x8cZ\tbL\f\n\x0f\x98\x1e\xfck\x00\x00R\x11\fm{\fd\xb4\x00\x00\x00\x00IEND\xaeB`\x82")
 var nine = []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\f\x00\x00\x00\x10\x02\x03\x00\x00\x00_\x0fv\x94\x00\x00\x00\fPLTE\xff\xff\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\xf8\x8c\x02M\x00\x00\x00DIDATx\xdac`\xe0b`aX\xf0\x8d\x89\xeb\x1f\a\vÍ\x15\fZ\f\x1aL\f\f\f@\xdc\xc0İ\x8a\x81\xe9\x01\xc3\x0f\xa6\x1f\f\f\xcc\xff\xb7j31(\x00e\xb4\x80ru\fL@A&\x8e\a\f\x00\xaa\x11\r%\x87\xa9\x00e\x00\x00\x00\x00IEND\xaeB`\x82")
 
-type MutablePalettedImage interface {
+type mutablePalettedImage interface {
 	Set(x, y int, c color.Color)
 	image.PalettedImage
 }
 
-func decode(imgData []byte) MutablePalettedImage {
+func decode(imgData []byte) mutablePalettedImage {
 	img, err := png.Decode(bytes.NewReader(imgData))
 	if err != nil {
 		log.Errorf("Unable to decode reader")
 	}
-	return img.(MutablePalettedImage)
+	return img.(mutablePalettedImage)
 }
 
-func preloadReferenceDigits() []MutablePalettedImage {
+func preloadReferenceDigits() []mutablePalettedImage {
 	data := [][]byte{zero, one, two, three, four, five, six, seven, eight, nine}
-	digits := []MutablePalettedImage{}
+	digits := []mutablePalettedImage{}
 	for _, undecodedDigit := range data {
 		digits = append(digits, decode(undecodedDigit))
 	}
@@ -45,7 +45,7 @@ func preloadReferenceDigits() []MutablePalettedImage {
 
 var digits = preloadReferenceDigits()
 
-func deleteNoise(captcha *MutablePalettedImage) *MutablePalettedImage {
+func deleteNoise(captcha *mutablePalettedImage) *mutablePalettedImage {
 	bounds := (*captcha).Bounds()
 
 	for x := 0; x < bounds.Max.X; x++ {
@@ -59,7 +59,7 @@ func deleteNoise(captcha *MutablePalettedImage) *MutablePalettedImage {
 	return captcha
 }
 
-func compareDigits(digitLeft *MutablePalettedImage, digitRight *MutablePalettedImage, originX int) int {
+func compareDigits(digitLeft *mutablePalettedImage, digitRight *mutablePalettedImage, originX int) int {
 	bounds := (*digitLeft).Bounds()
 	numberOfDifferences := 0
 
@@ -75,7 +75,7 @@ func compareDigits(digitLeft *MutablePalettedImage, digitRight *MutablePalettedI
 	return numberOfDifferences
 }
 
-func convertToString(captcha *MutablePalettedImage, originX int) string {
+func convertToString(captcha *mutablePalettedImage, originX int) string {
 	minDiff := 1000
 	index := 0
 	for i, digit := range digits {
