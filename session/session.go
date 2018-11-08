@@ -20,8 +20,11 @@ type Headers map[string]string
 type Cookies map[string]string
 
 //RequestWrapper wraps http.Request to add new functionality
-type RequestWrapper struct {
-	Request *http.Request
+type PartialRequest struct {
+	request func(body io.Reader, headers Headers, cookies Cookies) *http.Request
+	headers Headers
+	cookies Cookies
+	body    io.Reader
 }
 
 //ResponseWrapper wraps http.Response to add new functionality
@@ -29,7 +32,12 @@ type ResponseWrapper struct {
 	Response *http.Response
 }
 
-func newSession() *csession.Session {
+type Session struct {
+	*csession.Session
+}
+
+//New creates new session
+func New() *Session {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		jar = nil
@@ -37,8 +45,9 @@ func newSession() *csession.Session {
 	dontFollowRedirects := func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
-	session := csession.NewSession(http.DefaultTransport, dontFollowRedirects, jar)
-	session.HeadersFunc = func(req *http.Request) {
+	session := &Session{}
+	session.Session = csession.NewSession(http.DefaultTransport, dontFollowRedirects, jar)
+	session.Session.HeadersFunc = func(req *http.Request) {
 		csession.DefaultHeadersFunc(req)
 		userAgent := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
 		encoding := "gzip, deflate"
@@ -52,8 +61,6 @@ func newSession() *csession.Session {
 	return session
 }
 
-var client = newSession()
-
 func setHeaders(request *http.Request, headers Headers) {
 	if headers != nil {
 		for name, value := range headers {
@@ -62,44 +69,81 @@ func setHeaders(request *http.Request, headers Headers) {
 	}
 }
 
+func setCookies(request *http.Request, cookies Cookies) {
+	if cookies != nil {
+		for name, value := range cookies {
+			request.AddCookie(&http.Cookie{Name: name, Value: value})
+		}
+	}
+}
+
 //Post creates post request
-func Post(url string, body io.Reader, headers Headers) *RequestWrapper {
-	req, _ := http.NewRequest("POST", url, body)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	setHeaders(req, headers)
-	return &RequestWrapper{req}
+func Post(url string) *PartialRequest {
+	pr := &PartialRequest{}
+	pr.request = func(body io.Reader, headers Headers, cookies Cookies) *http.Request {
+		req, _ := http.NewRequest("POST", url, body)
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		setHeaders(req, headers)
+		setCookies(req, cookies)
+		return req
+	}
+	return pr
+}
+
+//Headers adds headers to request
+func (pr *PartialRequest) Headers(headers Headers) *PartialRequest {
+	pr.headers = headers
+	return pr
+}
+
+//Cookies adds cookies to request
+func (pr *PartialRequest) Cookies(cookies Cookies) *PartialRequest {
+	pr.cookies = cookies
+	return pr
+}
+
+//Make builds http.Request from PartialRequest
+func (pr *PartialRequest) Make() *http.Request {
+	return pr.request(pr.body, pr.headers, pr.cookies)
 }
 
 //Get creates get request
-func Get(url string, headers Headers) *RequestWrapper {
-	req, _ := http.NewRequest("GET", url, nil)
-	setHeaders(req, headers)
-	return &RequestWrapper{req}
+func Get(url string) *PartialRequest {
+	pr := &PartialRequest{}
+	pr.request = func(body io.Reader, headers Headers, cookies Cookies) *http.Request {
+		req, _ := http.NewRequest("GET", url, nil)
+		setHeaders(req, headers)
+		setCookies(req, cookies)
+		return req
+	}
+	return pr
 }
 
 //Form represents key/value post request body
-func Form(body url.Values) io.Reader {
-	return strings.NewReader(body.Encode())
+func (pr *PartialRequest) Form(body url.Values) *PartialRequest {
+	pr.body = strings.NewReader(body.Encode())
+	return pr
 }
 
 //Body represents simple string post request body
-func Body(body string) io.Reader {
-	return strings.NewReader(body)
+func (pr *PartialRequest) Body(body string) *PartialRequest {
+	pr.body = strings.NewReader(body)
+	return pr
 }
 
 //Send simply sends http request
-func (r *RequestWrapper) Send() (*http.Response, error) {
-	return client.Do(r.Request)
+func (s *Session) Send(request *http.Request) (*http.Response, error) {
+	return s.Do(request)
 }
 
 //SafeSend safely sends http request. In case of error it tries again
-func (r *RequestWrapper) SafeSend() *ResponseWrapper {
-	response, err := r.Send()
+func (s *Session) SafeSend(request *http.Request) *ResponseWrapper {
+	response, err := s.Send(request)
 	if err != nil {
 		log.Errorf("Error occurred while sending request. Try again\n%s", err)
-		return r.SafeSend()
+		return s.SafeSend(request)
 	}
-	debugHTTP("Sending request:\n%s", r.Request)
+	debugHTTP("Sending request:\n%s", request)
 	debugHTTP("Received response:\n%s", response)
 	return &ResponseWrapper{response}
 }

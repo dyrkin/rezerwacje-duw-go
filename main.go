@@ -23,6 +23,8 @@ var slotsRegex = regexp.MustCompile("lock\\(.*?>([\\d:]+)<\\/a>")
 
 var mutex = &sync.Mutex{}
 
+var client = session.New()
+
 func extractLatestDate(cityHTML string) string {
 	groups := dateEventsRegex.FindStringSubmatch(cityHTML)
 	data := []byte(groups[1])
@@ -42,38 +44,38 @@ func extractTerms(termsHTML string) []string {
 
 func acceptTerms(city *config.City) {
 	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/opmenus/terms/%s/%s?accepted=true", city.Queue, city.Id)
-	acceptTermsRequest := session.Get(url, nil)
-	acceptTermsRequest.SafeSend()
+	acceptTermsRequest := session.Get(url).Make()
+	client.SafeSend(acceptTermsRequest)
 }
 
 func latestDate(city *config.City) string {
 	acceptTerms(city)
 	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/pol/queues/%s/%s", city.Queue, city.Id)
-	cityRequest := session.Get(url, nil)
-	cityHTML := cityRequest.SafeSend().AsString()
+	cityRequest := session.Get(url).Make()
+	cityHTML := client.SafeSend(cityRequest).AsString()
 	return extractLatestDate(cityHTML)
 }
 
 func terms(city *config.City, date string) []string {
 	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/pol/queues/%s/%s/%s", city.Queue, city.Id, date)
 	headers := session.Headers{"X-Requested-With": "XMLHttpRequest"}
-	termsRequest := session.Get(url, headers)
-	termsHTML := termsRequest.SafeSend().AsString()
+	termsRequest := session.Get(url).Headers(headers).Make()
+	termsHTML := client.SafeSend(termsRequest).AsString()
 	terms := extractTerms(termsHTML)
 	log.Infof("Available terms for city %q: %q", city.Name, terms)
 	return terms
 }
 
 func recognizeCaptcha() string {
-	captchaRequest := session.Get("http://rezerwacje.duw.pl/reservations/captcha", nil)
-	captchaImage := captchaRequest.SafeSend().AsBytes()
+	captchaRequest := session.Get("http://rezerwacje.duw.pl/reservations/captcha").Make()
+	captchaImage := client.SafeSend(captchaRequest).AsBytes()
 	return captcha.RecognizeCaptcha(&captchaImage)
 }
 
 func checkCaptcha(captcha string) bool {
 	body := url.Values{"code": {captcha}}
-	checkCaptchaRequest := session.Post("http://rezerwacje.duw.pl/reservations/captcha/check", session.Form(body), nil)
-	result := checkCaptchaRequest.SafeSend().AsString()
+	checkCaptchaRequest := session.Post("http://rezerwacje.duw.pl/reservations/captcha/check").Form(body).Make()
+	result := client.SafeSend(checkCaptchaRequest).AsString()
 	return result == "true"
 }
 
@@ -87,14 +89,14 @@ func postUserData(city *config.City, slot string) {
 	body := renderUserDataToJSON()
 	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/reservations/updateFormData/%s/%s", slot, city.Id)
 	headers := session.Headers{"Content-Type": "application/json; charset=utf-8"}
-	postUserDataRequest := session.Post(url, session.Body(body), headers)
-	postUserDataRequest.SafeSend()
+	postUserDataRequest := session.Post(url).Body(body).Headers(headers).Make()
+	client.SafeSend(postUserDataRequest)
 }
 
 func confirmTerm(city *config.City, slot string) {
 	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/reservations/reserv/%s/%s", slot, city.Id)
-	confirmTermRequest := session.Get(url, nil)
-	confirmTermRequest.SafeSend()
+	confirmTermRequest := session.Get(url).Make()
+	client.SafeSend(confirmTermRequest)
 }
 
 func reserve(city *config.City, time string, slot string) {
@@ -117,8 +119,8 @@ func tryLock(city *config.City, time string) string {
 	for i := 0; i < 5; i++ {
 		go func() {
 			body := url.Values{"time": {time}, "queue": {city.Queue}}
-			lockRequest := session.Post("http://rezerwacje.duw.pl/reservations/reservations/lock", session.Form(body), nil)
-			lockResult <- lockRequest.SafeSend().AsString()
+			lockRequest := session.Post("http://rezerwacje.duw.pl/reservations/reservations/lock").Form(body).Make()
+			lockResult <- client.SafeSend(lockRequest).AsString()
 		}()
 	}
 	return <-lockResult
@@ -156,8 +158,8 @@ func processCity(city config.City, date string) {
 
 func login() bool {
 	body := url.Values{"data[User][email]": {userConf.Username}, "data[User][password]": {userConf.Password}}
-	loginRequest := session.Post("http://rezerwacje.duw.pl/reservations/pol/login", session.Form(body), nil)
-	loginResponse := loginRequest.SafeSend()
+	loginRequest := session.Post("http://rezerwacje.duw.pl/reservations/pol/login").Form(body).Make()
+	loginResponse := client.SafeSend(loginRequest)
 	return loginResponse.Response.StatusCode != 200
 }
 
