@@ -1,31 +1,14 @@
 package session
 
 import (
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httputil"
-	"net/url"
 	"rezerwacje-duw-go/log"
-	"strings"
 
 	"github.com/lunny/csession"
 )
-
-//Headers kay/value storage
-type Headers map[string]string
-
-//Cookies kay/value storage
-type Cookies map[string]string
-
-//RequestWrapper wraps http.Request to add new functionality
-type PartialRequest struct {
-	request func(body io.Reader, headers Headers, cookies Cookies) *http.Request
-	headers Headers
-	cookies Cookies
-	body    io.Reader
-}
 
 //Response wraps http.Response to add new functionality
 type Response struct {
@@ -68,68 +51,6 @@ func setHeaders(request *http.Request, headers Headers) {
 			request.Header.Set(name, value)
 		}
 	}
-}
-
-func setCookies(request *http.Request, cookies Cookies) {
-	if cookies != nil {
-		for name, value := range cookies {
-			request.AddCookie(&http.Cookie{Name: name, Value: value})
-		}
-	}
-}
-
-//Get creates get request
-func Get(url string) *PartialRequest {
-	pr := &PartialRequest{}
-	pr.request = func(body io.Reader, headers Headers, cookies Cookies) *http.Request {
-		req, _ := http.NewRequest("GET", url, body)
-		setHeaders(req, headers)
-		setCookies(req, cookies)
-		return req
-	}
-	return pr
-}
-
-//Post creates post request
-func Post(url string) *PartialRequest {
-	pr := &PartialRequest{}
-	pr.request = func(body io.Reader, headers Headers, cookies Cookies) *http.Request {
-		req, _ := http.NewRequest("POST", url, body)
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		setHeaders(req, headers)
-		setCookies(req, cookies)
-		return req
-	}
-	return pr
-}
-
-//Headers adds headers to request
-func (pr *PartialRequest) Headers(headers Headers) *PartialRequest {
-	pr.headers = headers
-	return pr
-}
-
-//Cookies adds cookies to request
-func (pr *PartialRequest) Cookies(cookies Cookies) *PartialRequest {
-	pr.cookies = cookies
-	return pr
-}
-
-//Form represents key/value post request body
-func (pr *PartialRequest) Form(body url.Values) *PartialRequest {
-	pr.body = strings.NewReader(body.Encode())
-	return pr
-}
-
-//Body represents simple string post request body
-func (pr *PartialRequest) Body(body string) *PartialRequest {
-	pr.body = strings.NewReader(body)
-	return pr
-}
-
-//Make builds http.Request from PartialRequest
-func (pr *PartialRequest) Make() *http.Request {
-	return pr.request(pr.body, pr.headers, pr.cookies)
 }
 
 //Send simply sends http request
