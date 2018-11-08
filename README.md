@@ -4,7 +4,7 @@
 
 1. download binary file from the [releases](https://github.com/dyrkin/rezerwacje-duw-go/releases) page.
 
-2. download [user.yml.template](https://github.com/dyrkin/rezerwacje-duw-go/blob/v1.0.0/user.yml.template) and place it in the same folder where the binary was downloaded.
+2. download [user.yml.template](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.0/user.yml.template) and [application.yml](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.0/application.yml) and place them in the same folder where the binary was downloaded.
 
 3. rename `user.yml.template` to `user.yml`.
 
@@ -17,11 +17,11 @@
 
     2. for **os x**:
 
-        ```$ rezerwacje-duw-go-osx```
+        ```$ ./rezerwacje-duw-go-osx```
 
     3. for **linux**:
 
-        ```$ rezerwacje-duw-go-linux```
+        ```$ ./rezerwacje-duw-go-linux```
 
 6. wait until the message appears `Reservation completed for the following city Wrocław, slot 123456 and time 2018-11-03 11:15:00. Check your email or DUW site`.
 7. close the app by pressing any key.
