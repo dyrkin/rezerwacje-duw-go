@@ -199,6 +199,8 @@ func main() {
 				go processCity(*city, date)
 			}
 		}
+	} else {
+		log.Infoln("Invalid login or password")
 	}
 	await()
 }

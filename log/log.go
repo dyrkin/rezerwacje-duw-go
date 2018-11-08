@@ -22,3 +22,8 @@ func Infof(format string, v ...interface{}) {
 	Debugf(format, v...)
 	stdout.Printf(format+"\n", v...)
 }
+
+func Infoln(text string) {
+	Debugf(text)
+	stdout.Println(text)
+}
