@@ -13,7 +13,7 @@
   
     1. for **windows**: 
         
-        ```> rezerwacje-duw-go-win.exe```
+        ```> rezerwacje-duw-go-win{32/64}.exe```
 
     2. for **os x**:
 
@@ -21,7 +21,7 @@
 
     3. for **linux**:
 
-        ```$ ./rezerwacje-duw-go-linux```
+        ```$ ./rezerwacje-duw-go-linux{32/64}```
 
 6. wait until the message appears `Reservation completed for the following city Wrocław, slot 123456 and time 2018-11-03 11:15:00. Check your email or DUW site`.
 7. close the app by pressing any key.
