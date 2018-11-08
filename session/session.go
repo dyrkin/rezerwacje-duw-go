@@ -27,11 +27,12 @@ type PartialRequest struct {
 	body    io.Reader
 }
 
-//ResponseWrapper wraps http.Response to add new functionality
-type ResponseWrapper struct {
-	Response *http.Response
+//Response wraps http.Response to add new functionality
+type Response struct {
+	*http.Response
 }
 
+//Session the same as csession.Session, but I wan't to add additional functionality to it
 type Session struct {
 	*csession.Session
 }
@@ -77,6 +78,18 @@ func setCookies(request *http.Request, cookies Cookies) {
 	}
 }
 
+//Get creates get request
+func Get(url string) *PartialRequest {
+	pr := &PartialRequest{}
+	pr.request = func(body io.Reader, headers Headers, cookies Cookies) *http.Request {
+		req, _ := http.NewRequest("GET", url, body)
+		setHeaders(req, headers)
+		setCookies(req, cookies)
+		return req
+	}
+	return pr
+}
+
 //Post creates post request
 func Post(url string) *PartialRequest {
 	pr := &PartialRequest{}
@@ -102,23 +115,6 @@ func (pr *PartialRequest) Cookies(cookies Cookies) *PartialRequest {
 	return pr
 }
 
-//Make builds http.Request from PartialRequest
-func (pr *PartialRequest) Make() *http.Request {
-	return pr.request(pr.body, pr.headers, pr.cookies)
-}
-
-//Get creates get request
-func Get(url string) *PartialRequest {
-	pr := &PartialRequest{}
-	pr.request = func(body io.Reader, headers Headers, cookies Cookies) *http.Request {
-		req, _ := http.NewRequest("GET", url, nil)
-		setHeaders(req, headers)
-		setCookies(req, cookies)
-		return req
-	}
-	return pr
-}
-
 //Form represents key/value post request body
 func (pr *PartialRequest) Form(body url.Values) *PartialRequest {
 	pr.body = strings.NewReader(body.Encode())
@@ -131,21 +127,38 @@ func (pr *PartialRequest) Body(body string) *PartialRequest {
 	return pr
 }
 
+//Make builds http.Request from PartialRequest
+func (pr *PartialRequest) Make() *http.Request {
+	return pr.request(pr.body, pr.headers, pr.cookies)
+}
+
 //Send simply sends http request
 func (s *Session) Send(request *http.Request) (*http.Response, error) {
 	return s.Do(request)
 }
 
 //SafeSend safely sends http request. In case of error it tries again
-func (s *Session) SafeSend(request *http.Request) *ResponseWrapper {
+func (s *Session) SafeSend(request *http.Request) *Response {
+	debugHTTP("Sending request:\n%s\n", request)
 	response, err := s.Send(request)
 	if err != nil {
 		log.Errorf("Error occurred while sending request. Try again\n%s", err)
 		return s.SafeSend(request)
 	}
-	debugHTTP("Sending request:\n%s", request)
-	debugHTTP("Received response:\n%s", response)
-	return &ResponseWrapper{response}
+	debugHTTP("Received response:\n%s\n", response)
+	return &Response{response}
+}
+
+//AsString converts http response to string
+func (r *Response) AsString() string {
+	return string(r.AsBytes())
+}
+
+//AsBytes converts http response to byte array
+func (r *Response) AsBytes() []byte {
+	defer r.Response.Body.Close()
+	resp, _ := ioutil.ReadAll(r.Response.Body)
+	return resp
 }
 
 func debugHTTP(format string, r interface{}) {
@@ -158,20 +171,8 @@ func debugHTTP(format string, r interface{}) {
 		bytes, err = httputil.DumpResponse(r, true)
 	}
 	if err == nil {
-		log.Debugf(format, bytes)
+		log.Debugf(format, string(bytes))
 	} else {
 		log.Errorf(format, err)
 	}
-}
-
-//AsString converts http response to string
-func (r *ResponseWrapper) AsString() string {
-	return string(r.AsBytes())
-}
-
-//AsBytes converts http response to byte array
-func (r *ResponseWrapper) AsBytes() []byte {
-	defer r.Response.Body.Close()
-	resp, _ := ioutil.ReadAll(r.Response.Body)
-	return resp
 }
