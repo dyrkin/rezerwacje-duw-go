@@ -52,13 +52,21 @@ type UserConfig struct {
 	AdditionalApplications []string
 }
 
-type Row struct {
+type row struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 
 func (uc UserConfig) IsPermanentResidence() bool {
 	return uc.ResidenceType != "temporary"
+}
+
+var userConf *UserConfig
+var applicationConf *ApplicationConfig
+
+func init() {
+	userConf = initializeUserConfig()
+	applicationConf = initializeApplicationConfig()
 }
 
 func initializeConfig(name string, configuration interface{}) {
@@ -81,27 +89,32 @@ func initializeApplicationConfig() *ApplicationConfig {
 	return &configuration
 }
 
-var UserConf = initializeUserConfig()
-var ApplicationConf = initializeApplicationConfig()
+func UserConf() *UserConfig {
+	return userConf
+}
 
-func CollectUserData() []*Row {
-	data := []*Row{}
-	strings := ApplicationConf.Strings
-	if UserConf.IsPermanentResidence() {
-		data = append(data, &Row{strings.ResidenceTypeHeader, strings.ResidenceTypePermanent})
+func ApplicationConf() *ApplicationConfig {
+	return applicationConf
+}
+
+func CollectUserData() []*row {
+	data := []*row{}
+	strings := applicationConf.Strings
+	if userConf.IsPermanentResidence() {
+		data = append(data, &row{strings.ResidenceTypeHeader, strings.ResidenceTypePermanent})
 	} else {
-		data = append(data, &Row{strings.ResidenceTypeHeader, strings.ResidenceTypeTemporary})
+		data = append(data, &row{strings.ResidenceTypeHeader, strings.ResidenceTypeTemporary})
 	}
-	data = append(data, &Row{strings.NameSurnameHeader, fmt.Sprintf("%s %s", UserConf.Surname, UserConf.Name)})
-	data = append(data, &Row{strings.CitizenshipHeader, UserConf.Citizenship})
-	data = append(data, &Row{strings.DateOfBirthHeader, UserConf.DateOfBirth})
-	data = append(data, &Row{strings.PhoneHeader, UserConf.Phone})
-	data = append(data, &Row{strings.PassportHeader, UserConf.Passport})
-	if UserConf.ResidenceCard != "" {
-		data = append(data, &Row{strings.ResidenceCardHeader, UserConf.ResidenceCard})
+	data = append(data, &row{strings.NameSurnameHeader, fmt.Sprintf("%s %s", userConf.Surname, userConf.Name)})
+	data = append(data, &row{strings.CitizenshipHeader, userConf.Citizenship})
+	data = append(data, &row{strings.DateOfBirthHeader, userConf.DateOfBirth})
+	data = append(data, &row{strings.PhoneHeader, userConf.Phone})
+	data = append(data, &row{strings.PassportHeader, userConf.Passport})
+	if userConf.ResidenceCard != "" {
+		data = append(data, &row{strings.ResidenceCardHeader, userConf.ResidenceCard})
 	}
-	data = append(data, &Row{strings.DataProcessingHeader, strings.DataProcessingValue})
-	for _, additionalApplication := range UserConf.AdditionalApplications {
+	data = append(data, &row{strings.DataProcessingHeader, strings.DataProcessingValue})
+	for _, additionalApplication := range userConf.AdditionalApplications {
 		var applicant string
 		switch additionalApplication {
 		case "child":
@@ -111,7 +124,7 @@ func CollectUserData() []*Row {
 		case "children":
 			applicant = strings.AdditionalApplicationTypeChildren
 		}
-		data = append(data, &Row{strings.AdditionalApplicationsHeader, applicant})
+		data = append(data, &row{strings.AdditionalApplicationsHeader, applicant})
 	}
 	return data
 }

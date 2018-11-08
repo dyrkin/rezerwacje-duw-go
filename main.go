@@ -15,9 +15,6 @@ import (
 	"rezerwacje-duw-go/session"
 )
 
-var userConf = config.UserConf
-var applicationConf = config.ApplicationConf
-
 var dateEventsRegex = regexp.MustCompile("var dateEvents\\s+=\\s+(?P<Events>.*?);")
 var slotsRegex = regexp.MustCompile("lock\\(.*?>([\\d:]+)<\\/a>")
 
@@ -157,7 +154,7 @@ func processCity(city config.City, date string) {
 }
 
 func login() bool {
-	body := url.Values{"data[User][email]": {userConf.Username}, "data[User][password]": {userConf.Password}}
+	body := url.Values{"data[User][email]": {config.UserConf().Username}, "data[User][password]": {config.UserConf().Password}}
 	loginRequest := session.Post("http://rezerwacje.duw.pl/reservations/pol/login").Form(body).Make()
 	loginResponse := client.SafeSend(loginRequest)
 	return loginResponse.Response.StatusCode != 200
@@ -182,7 +179,7 @@ func await() {
 
 func collectActiveCities() map[*config.City]string {
 	citiesToProcess := map[*config.City]string{}
-	for _, city := range applicationConf.Cities {
+	for _, city := range config.ApplicationConf().Cities {
 		cityDate := latestDate(city)
 		if validDate(cityDate) {
 			log.Infof("Going to process city %q for date %q", city.Name, cityDate)
@@ -197,7 +194,7 @@ func collectActiveCities() map[*config.City]string {
 func main() {
 	if login() {
 		activeCities := collectActiveCities()
-		for i := 0; i < applicationConf.ParallelismFactor; i++ {
+		for i := 0; i < config.ApplicationConf().ParallelismFactor; i++ {
 			for city, date := range activeCities {
 				go processCity(*city, date)
 			}
