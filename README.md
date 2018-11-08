@@ -1,6 +1,29 @@
 # Rezerwacje DUW
 
-#### To begin reservation
+### To begin reservation
+
+1. download binary file from the [releases](https://github.com/dyrkin/rezerwacje-duw-go/releases) page.
+
+2. download [user.yml.template](https://github.com/dyrkin/rezerwacje-duw-go/blob/v1.0.0/user.yml.template) and place it in the same folder where the binary was downloaded.
+
+3. rename `user.yml.template` to `user.yml`.
+
+4. edit `user.yml` file providing your credentials and information required for reservation.
+5. run the application
+  
+    1. for **windows**: 
+        
+        ```> rezerwacje-duw-go.exe```
+
+    2. for **os x/ubuntu**:
+
+        ```$ rezerwacje-duw-go```
+
+6. wait until the message appears `Reservation completed for the following city Wrocław, slot 123456 and time 2018-11-03 11:15:00. Check your email or DUW site`.
+7. close the app by pressing any key.
+8. check your email or DUW site.
+
+### To run application from the source code
 
 1. install `golang` of min version `1.11`.
 
@@ -15,10 +38,3 @@
 5. run the application
 
    ```$ go run main.go```
-
-6. wait until the message appears `Reservation completed for the following city Wrocław, slot 123456 and time 2018-11-03 11:15:00. Check your email or DUW site`.
-7. close the app by pressing any key.
-8. check your email or DUW site.
-
-
-
