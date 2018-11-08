@@ -13,17 +13,20 @@ type Headers map[string]string
 //Cookies kay/value storage
 type Cookies map[string]string
 
+type makeable interface {
+	Make() *http.Request
+}
+
 //PostRequestBuilder is a post request builder interface
 type PostRequestBuilder interface {
 	Headers(headers Headers) PostRequestBuilder
 	Cookies(cookies Cookies) PostRequestBuilder
 	Form(body url.Values) PostRequestBuilder
 	Body(body string) PostRequestBuilder
-	Make() *http.Request
+	makeable
 }
 
-//PostRequest holds collected post request specific data
-type PostRequest struct {
+type postRequest struct {
 	request func(body io.Reader, headers Headers, cookies Cookies) *http.Request
 	body    io.Reader
 	headers Headers
@@ -34,11 +37,10 @@ type PostRequest struct {
 type GetRequestBuilder interface {
 	Headers(headers Headers) GetRequestBuilder
 	Cookies(cookies Cookies) GetRequestBuilder
-	Make() *http.Request
+	makeable
 }
 
-//GetRequest holds collected get request specific data
-type GetRequest struct {
+type getRequest struct {
 	request func(headers Headers, cookies Cookies) *http.Request
 	headers Headers
 	cookies Cookies
@@ -46,7 +48,7 @@ type GetRequest struct {
 
 //Get creates get request
 func Get(url string) GetRequestBuilder {
-	pr := &GetRequest{}
+	pr := &getRequest{}
 	pr.request = func(headers Headers, cookies Cookies) *http.Request {
 		req, _ := http.NewRequest("GET", url, nil)
 		setHeaders(req, headers)
@@ -58,7 +60,7 @@ func Get(url string) GetRequestBuilder {
 
 //Post creates post request
 func Post(url string) PostRequestBuilder {
-	pr := &PostRequest{}
+	pr := &postRequest{}
 	pr.request = func(body io.Reader, headers Headers, cookies Cookies) *http.Request {
 		req, _ := http.NewRequest("POST", url, body)
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -70,48 +72,48 @@ func Post(url string) PostRequestBuilder {
 }
 
 //Headers adds headers to post request
-func (pr *PostRequest) Headers(headers Headers) PostRequestBuilder {
+func (pr *postRequest) Headers(headers Headers) PostRequestBuilder {
 	pr.headers = headers
 	return pr
 }
 
 //Headers adds headers to get request
-func (pr *GetRequest) Headers(headers Headers) GetRequestBuilder {
+func (pr *getRequest) Headers(headers Headers) GetRequestBuilder {
 	pr.headers = headers
 	return pr
 }
 
 //Cookies adds cookies to post request
-func (pr *PostRequest) Cookies(cookies Cookies) PostRequestBuilder {
+func (pr *postRequest) Cookies(cookies Cookies) PostRequestBuilder {
 	pr.cookies = cookies
 	return pr
 }
 
 //Cookies adds cookies to get request
-func (pr *GetRequest) Cookies(cookies Cookies) GetRequestBuilder {
+func (pr *getRequest) Cookies(cookies Cookies) GetRequestBuilder {
 	pr.cookies = cookies
 	return pr
 }
 
 //Form represents key/value post request body
-func (pr *PostRequest) Form(body url.Values) PostRequestBuilder {
+func (pr *postRequest) Form(body url.Values) PostRequestBuilder {
 	pr.body = strings.NewReader(body.Encode())
 	return pr
 }
 
 //Body represents simple string post request body
-func (pr *PostRequest) Body(body string) PostRequestBuilder {
+func (pr *postRequest) Body(body string) PostRequestBuilder {
 	pr.body = strings.NewReader(body)
 	return pr
 }
 
 //Make builds http.Request from PartialRequest
-func (pr *PostRequest) Make() *http.Request {
+func (pr *postRequest) Make() *http.Request {
 	return pr.request(pr.body, pr.headers, pr.cookies)
 }
 
 //Make builds http.Request from PartialRequest
-func (pr *GetRequest) Make() *http.Request {
+func (pr *getRequest) Make() *http.Request {
 	return pr.request(pr.headers, pr.cookies)
 }
 
