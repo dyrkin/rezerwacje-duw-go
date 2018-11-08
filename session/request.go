@@ -28,14 +28,6 @@ type GetRequest struct {
 	cookies Cookies
 }
 
-func setCookies(request *http.Request, cookies Cookies) {
-	if cookies != nil {
-		for name, value := range cookies {
-			request.AddCookie(&http.Cookie{Name: name, Value: value})
-		}
-	}
-}
-
 //Get creates get request
 func Get(url string) *GetRequest {
 	pr := &GetRequest{}
@@ -105,4 +97,20 @@ func (pr *PostRequest) Make() *http.Request {
 //Make builds http.Request from PartialRequest
 func (pr *GetRequest) Make() *http.Request {
 	return pr.request(pr.headers, pr.cookies)
+}
+
+func setHeaders(request *http.Request, headers Headers) {
+	if headers != nil {
+		for name, value := range headers {
+			request.Header.Set(name, value)
+		}
+	}
+}
+
+func setCookies(request *http.Request, cookies Cookies) {
+	if cookies != nil {
+		for name, value := range cookies {
+			request.AddCookie(&http.Cookie{Name: name, Value: value})
+		}
+	}
 }

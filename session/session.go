@@ -45,14 +45,6 @@ func New() *Session {
 	return session
 }
 
-func setHeaders(request *http.Request, headers Headers) {
-	if headers != nil {
-		for name, value := range headers {
-			request.Header.Set(name, value)
-		}
-	}
-}
-
 //Send simply sends http request
 func (s *Session) Send(request *http.Request) (*http.Response, error) {
 	return s.Do(request)
