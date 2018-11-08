@@ -16,7 +16,7 @@ strings:
   additionalApplicationTypeSpouse: "żona/mąż     "
   additionalApplicationTypeChildren: "dzieci"
 
-parallelismFactor: 1 #minimum 1
+parallelismFactor: 4 #minimum 1
 
 cities:
   - name: "Jelenia Góra"

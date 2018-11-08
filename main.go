@@ -124,24 +124,23 @@ func tryLock(city *config.City, time string) string {
 	return <-lockResult
 }
 
-func lock(city *config.City, time string) string {
+func lock(city *config.City, time string) (slot string, locked bool) {
 	mutex.Lock()
 	log.Infof("Locking term %s for city %q", time, city.Name)
 	lockResult := tryLock(city, time)
 	if strings.HasPrefix(lockResult, "OK") {
 		slot := lockResult[3:]
 		log.Infof("Term is locked. City %q, time %q, slot %q", city.Name, time, slot)
-		return slot
+		return slot, true
 	}
 	log.Infof("Unable to lock term %q for city %q. Reason %q", time, city.Name, lockResult)
 	mutex.Unlock()
-	return ""
+	return "", false
 }
 
 func makeReservation(city *config.City, date string, term string) {
 	time := fmt.Sprintf("%s %s:00", date, term)
-	slot := lock(city, time)
-	if slot != "" {
+	if slot, ok := lock(city, time); ok {
 		reserve(city, time, slot)
 	}
 }
