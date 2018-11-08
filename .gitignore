@@ -2,5 +2,5 @@ user.yml
 .DS_Store
 go.sum
 .vscode/
-rezerwacje-duw-go
+rezerwacje-duw-go*
 *.log
