@@ -1,4 +1,4 @@
-username: "duw username"                        #mandatory. login
+login: "duw username"                           #mandatory. login
 password: "duw password"                        #mandatory. password
 name : "My Name"                                #mandatory. first name
 surname: "My Surname"                           #mandatory. last name

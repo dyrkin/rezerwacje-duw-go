@@ -154,7 +154,7 @@ func processCity(city config.City, date string) {
 }
 
 func login() bool {
-	body := url.Values{"data[User][email]": {config.UserConf().Username}, "data[User][password]": {config.UserConf().Password}}
+	body := url.Values{"data[User][email]": {config.UserConf().Login}, "data[User][password]": {config.UserConf().Password}}
 	loginRequest := session.Post("http://rezerwacje.duw.pl/reservations/pol/login").Form(body).Make()
 	loginResponse := client.SafeSend(loginRequest)
 	return loginResponse.Response.StatusCode != 200

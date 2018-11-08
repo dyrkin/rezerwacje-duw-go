@@ -39,7 +39,7 @@ type ApplicationConfig struct {
 }
 
 type UserConfig struct {
-	Username               string
+	Login                  string
 	Password               string
 	Name                   string
 	Surname                string
