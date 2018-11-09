@@ -8,12 +8,14 @@ import (
 	"github.com/tkanos/gonfig"
 )
 
+//City represents city
 type City struct {
 	Name  string
 	Queue string
 	Id    string
 }
 
+//Strings represents booking specific strings
 type Strings struct {
 	ResidenceTypeHeader               string
 	ResidenceTypeTemporary            string
@@ -32,12 +34,14 @@ type Strings struct {
 	AdditionalApplicationTypeChildren string
 }
 
+//ApplicationConfig - just it
 type ApplicationConfig struct {
 	Strings           Strings
 	ParallelismFactor int
 	Cities            []*City
 }
 
+//UserConfig - just it
 type UserConfig struct {
 	Login                  string
 	Password               string
@@ -57,6 +61,7 @@ type row struct {
 	Value string `json:"value"`
 }
 
+//IsPermanentResidence - is apllication permanent
 func (uc UserConfig) IsPermanentResidence() bool {
 	return uc.ResidenceType != "temporary"
 }
@@ -78,25 +83,28 @@ func initializeConfig(name string, configuration interface{}) {
 }
 
 func initializeUserConfig() *UserConfig {
-	configuration := UserConfig{}
-	initializeConfig("user.yml", &configuration)
-	return &configuration
+	configuration := &UserConfig{}
+	initializeConfig("user.yml", configuration)
+	return configuration
 }
 
 func initializeApplicationConfig() *ApplicationConfig {
-	configuration := ApplicationConfig{}
-	initializeConfig("application.yml", &configuration)
-	return &configuration
+	configuration := &ApplicationConfig{}
+	initializeConfig("application.yml", configuration)
+	return configuration
 }
 
+//UserConf returns config with user specific details
 func UserConf() *UserConfig {
 	return userConf
 }
 
+//ApplicationConf returns application config
 func ApplicationConf() *ApplicationConfig {
 	return applicationConf
 }
 
+//CollectUserData returns used data in "ready to convert to json" format
 func CollectUserData() []*row {
 	data := []*row{}
 	strings := applicationConf.Strings

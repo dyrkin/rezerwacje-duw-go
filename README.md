@@ -4,7 +4,7 @@
 
 1. download binary file from the [releases](https://github.com/dyrkin/rezerwacje-duw-go/releases) page.
 
-2. download [user.yml.template](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.1/user.yml.template) and [application.yml](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.1/application.yml) and place them in the same folder where the binary was downloaded.
+2. download [user.yml.template](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.2/user.yml.template) and [application.yml](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.2/application.yml) and place them in the same folder where the binary was downloaded.
 
 3. rename `user.yml.template` to `user.yml`.
 
