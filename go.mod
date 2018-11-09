@@ -1,7 +1,6 @@
 module rezerwacje-duw-go
 
 require (
-	github.com/dave/jennifer v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/logger v0.0.0-20180208223940-54b4ae679a63
 	github.com/lunny/csession v0.0.0-20130910075847-fe53c5de3dfd
