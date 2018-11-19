@@ -2,10 +2,12 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 
-	"github.com/tkanos/gonfig"
+	"github.com/ghodss/yaml"
 )
 
 //City represents city
@@ -61,7 +63,7 @@ type row struct {
 	Value string `json:"value"`
 }
 
-//IsPermanentResidence - is apllication permanent
+//IsPermanentResidence - is application permanent
 func (uc UserConfig) IsPermanentResidence() bool {
 	return uc.ResidenceType != "temporary"
 }
@@ -74,9 +76,26 @@ func init() {
 	applicationConf = initializeApplicationConfig()
 }
 
+func unmarshalConfig(path string, configuration interface{}) (err error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return
+	}
+	err = yaml.Unmarshal(data, &configuration)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func initializeConfig(name string, configuration interface{}) {
 	path, _ := filepath.Abs(name)
-	err := gonfig.GetConf(path, configuration)
+	err := unmarshalConfig(path, configuration)
 	if err != nil {
 		log.Fatalf("Can not read config\n%s\n\n", err)
 	}
