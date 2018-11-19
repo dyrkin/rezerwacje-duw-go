@@ -14,7 +14,7 @@ import (
 type City struct {
 	Name  string
 	Queue string
-	Id    string
+	ID    string
 }
 
 //Strings represents booking specific strings

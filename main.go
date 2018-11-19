@@ -40,21 +40,21 @@ func extractTerms(termsHTML string) []string {
 }
 
 func acceptTerms(city *config.City) {
-	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/opmenus/terms/%s/%s?accepted=true", city.Queue, city.Id)
+	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/opmenus/terms/%s/%s?accepted=true", city.Queue, city.ID)
 	acceptTermsRequest := session.Get(url).Make()
 	client.SafeSend(acceptTermsRequest)
 }
 
 func latestDate(city *config.City) string {
 	acceptTerms(city)
-	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/pol/queues/%s/%s", city.Queue, city.Id)
+	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/pol/queues/%s/%s", city.Queue, city.ID)
 	cityRequest := session.Get(url).Make()
 	cityHTML := client.SafeSend(cityRequest).AsString()
 	return extractLatestDate(cityHTML)
 }
 
 func terms(city *config.City, date string) []string {
-	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/pol/queues/%s/%s/%s", city.Queue, city.Id, date)
+	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/pol/queues/%s/%s/%s", city.Queue, city.ID, date)
 	headers := session.Headers{"X-Requested-With": "XMLHttpRequest"}
 	termsRequest := session.Get(url).Headers(headers).Make()
 	termsHTML := client.SafeSend(termsRequest).AsString()
@@ -84,14 +84,14 @@ func renderUserDataToJSON() string {
 
 func postUserData(city *config.City, slot string) {
 	body := renderUserDataToJSON()
-	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/reservations/updateFormData/%s/%s", slot, city.Id)
+	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/reservations/updateFormData/%s/%s", slot, city.ID)
 	headers := session.Headers{"Content-Type": "application/json; charset=utf-8"}
 	postUserDataRequest := session.Post(url).Body(body).Headers(headers).Make()
 	client.SafeSend(postUserDataRequest)
 }
 
 func confirmTerm(city *config.City, slot string) {
-	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/reservations/reserv/%s/%s", slot, city.Id)
+	url := fmt.Sprintf("http://rezerwacje.duw.pl/reservations/reservations/reserv/%s/%s", slot, city.ID)
 	confirmTermRequest := session.Get(url).Make()
 	client.SafeSend(confirmTermRequest)
 }
