@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"rezerwacje-duw-go/captcha"
-	"rezerwacje-duw-go/config"
-	"rezerwacje-duw-go/log"
-	"rezerwacje-duw-go/session"
+	"github.com/dyrkin/rezerwacje-duw-go/captcha"
+	"github.com/dyrkin/rezerwacje-duw-go/config"
+	"github.com/dyrkin/rezerwacje-duw-go/log"
+	"github.com/dyrkin/rezerwacje-duw-go/session"
 )
 
 var dateEventsRegex = regexp.MustCompile("var dateEvents\\s+=\\s+(?P<Events>.*?);")

@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httputil"
-	"rezerwacje-duw-go/log"
+
+	"github.com/dyrkin/rezerwacje-duw-go/log"
 
 	"github.com/lunny/csession"
 )

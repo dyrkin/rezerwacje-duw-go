@@ -1,4 +1,4 @@
-module rezerwacje-duw-go
+module github.com/dyrkin/rezerwacje-duw-go
 
 require (
 	github.com/ghodss/yaml v1.0.0
