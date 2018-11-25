@@ -192,7 +192,9 @@ func collectActiveCities() map[*config.City]string {
 }
 
 func main() {
+	log.Infof("Logging in...")
 	if login() {
+		log.Infof("Successfully logged in")
 		activeCities := collectActiveCities()
 		for i := 0; i < config.ApplicationConf().ParallelismFactor; i++ {
 			for city, date := range activeCities {
