@@ -1,6 +1,6 @@
 # Rezerwacje DUW
 
-[![Github Release](https://img.shields.io/badge/release-1.0.3-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.3)
+[![Build Status](https://api.travis-ci.org/dyrkin/rezerwacje-duw-go.svg?branch=master)](https://travis-ci.org/dyrkin/rezerwacje-duw-go) [![Github Release](https://img.shields.io/badge/release-1.0.3-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.3)
 
 ### To begin reservation
 
