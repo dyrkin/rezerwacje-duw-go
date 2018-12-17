@@ -1,12 +1,12 @@
 # Rezerwacje DUW
 
-[![Build Status](https://api.travis-ci.org/dyrkin/rezerwacje-duw-go.svg?branch=master)](https://travis-ci.org/dyrkin/rezerwacje-duw-go) [![Github Release](https://img.shields.io/badge/release-1.0.3-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.3)
+[![Build Status](https://api.travis-ci.org/dyrkin/rezerwacje-duw-go.svg?branch=master)](https://travis-ci.org/dyrkin/rezerwacje-duw-go) [![Github Release](https://img.shields.io/badge/release-1.0.4-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.4)
 
 ### To begin reservation
 
 1. download binary file from the [releases](https://github.com/dyrkin/rezerwacje-duw-go/releases) page.
 
-2. download [user.yml.template](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.2/user.yml.template) and [application.yml](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.2/application.yml) and place them in the same folder where the binary was downloaded.
+2. download [user.yml.template](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.4/user.yml.template) and [application.yml](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.4/application.yml) and place them in the same folder where the binary was downloaded.
 
 3. rename `user.yml.template` to `user.yml`.
 
