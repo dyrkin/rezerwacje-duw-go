@@ -12,9 +12,10 @@ import (
 
 //City represents city
 type City struct {
-	Name  string
-	Queue string
-	ID    string
+	Name      string
+	ShortName string
+	Queue     string
+	ID        string
 }
 
 //Strings represents booking specific strings

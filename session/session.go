@@ -1,6 +1,7 @@
 package session
 
 import (
+	"crypto/tls"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
@@ -30,8 +31,10 @@ func New() *Session {
 	dontFollowRedirects := func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
+	transport := http.DefaultTransport
+	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	session := &Session{}
-	session.Session = csession.NewSession(http.DefaultTransport, dontFollowRedirects, jar)
+	session.Session = csession.NewSession(transport, dontFollowRedirects, jar)
 	session.Session.HeadersFunc = func(req *http.Request) {
 		csession.DefaultHeadersFunc(req)
 		userAgent := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
