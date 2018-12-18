@@ -1,12 +1,12 @@
 # Rezerwacje DUW
 
-[![Build Status](https://api.travis-ci.org/dyrkin/rezerwacje-duw-go.svg?branch=master)](https://travis-ci.org/dyrkin/rezerwacje-duw-go) [![Github Release](https://img.shields.io/badge/release-1.0.4-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.4)
+[![Build Status](https://api.travis-ci.org/dyrkin/rezerwacje-duw-go.svg?branch=master)](https://travis-ci.org/dyrkin/rezerwacje-duw-go) [![Github Release](https://img.shields.io/badge/release-1.0.5-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.5)
 
 ### To begin reservation
 
 1. download binary file from the [releases](https://github.com/dyrkin/rezerwacje-duw-go/releases) page.
 
-2. download [user.yml.template](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.4/user.yml.template) and [application.yml](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.4/application.yml) and place them in the same folder where the binary was downloaded.
+2. download [user.yml.template](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.5/user.yml.template) and [application.yml](https://raw.githubusercontent.com/dyrkin/rezerwacje-duw-go/v1.0.5/application.yml) and place them in the same folder where the binary was downloaded.
 
 3. rename `user.yml.template` to `user.yml`.
 
@@ -14,8 +14,8 @@
 5. run the application
   
     1. for **windows**: 
-        
-        ```> rezerwacje-duw-go-win{32/64}.exe```
+         
+        ```$ rezerwacje-duw-go-win{32/64}.exe```
 
     2. for **os x**:
 
@@ -25,9 +25,28 @@
 
         ```$ ./rezerwacje-duw-go-linux{32/64}```
 
-6. wait until the message appears `Reservation completed for the following city Wrocław, slot 123456 and time 2018-11-03 11:15:00. Check your email or DUW site`.
+    with the following options:
+
+6. wait until the message appears `Reservation completed for Wrocław, slot 123456 and time 2018-11-03 11:15:00. Check your email or DUW site`.
+
 7. close the app by pressing any key.
 8. check your email or DUW site.
+9. usage examples:
+    - Reservation of a visit for making a legalization of foreigners in any city
+
+        ```$ ./rezerwacje-duw-go-osx application```
+
+    - Reservation of a visit for making a legalization of foreigners in cities Wrocław and Legnica
+
+        ```$ ./rezerwacje-duw-go-osx application city WRO LG```
+
+    - Reservation of a visit to head of LP1 department
+
+        ```$ ./rezerwacje-duw-go-osx headof department LP1```
+
+    - Reservation of a visit to head of LP2 department
+
+        ```$ ./rezerwacje-duw-go-osx headof department LP2```
 
 ### To run application from the source code
 

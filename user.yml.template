@@ -8,4 +8,6 @@ phone : "+48123456789"                          #mandatory. contact phone number
 passport : "AA123456"                           #mandatory. passport number
 residenceCard : "RP12345678"                    #optional.  residence card number. remove if not applicable
 residenceType : "temporary"                     #mandatory. type of application. variants: temporary, permanent
-additionalApplications : ["child", "spouse"]    #optional. variants: child, spouse, children. leave empty if not applicable
+additionalApplications : ["child", "spouse"]    #optional. variants: child, spouse, children. leave it empty if not applicable
+referenceNumber: "Wojciech Piłsudski"           #optional. reference number of application or name of the inspector. required if you want to make reservation to manager
+submissionDate: "2018-09-27"                    #optional. application submission date. required if you want to make reservation to manager. format: yyyy-MM-dd

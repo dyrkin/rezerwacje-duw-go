@@ -15,7 +15,13 @@ strings:
   additionalApplicationTypeChild: "dziecko "
   additionalApplicationTypeSpouse: "żona/mąż     "
   additionalApplicationTypeChildren: "dzieci"
-  
+  lpInfo: "sprawy złożone do 1.02.2018 r. o sygnaturze zaczynającej się od LPII są do kierownika Króla, natomiast sprawy po 1.02.2018 do M.Piotrowskiej."
+  lpNameSurnameHeader: "nazwisko i imię"
+  lpDateOfBirthHeader: "data urodzenia/Date of birth"
+  lpPhoneHeader: "NUMER TELEFONU KONTAKTOWEGO"
+  lpReferenceNumberHeader: "sygnatura sprawy lub nazwisko inspektora prowadzącego postępowanie"
+  lpSubmissionDateHeader: "wpisz datę złożenia wniosku (przesłania drogą pocztową)"
+
 parallelismFactor: 4 #minimum 1
 
 cities:
@@ -36,12 +42,12 @@ cities:
     queue: "17"
     id: "1"
 
-lp1:
-    name: "Król"
+departments:
+  - name: "Kierownik Oddziału LP I"
+    shortName: "LP1"
     queue: "103"
     id: "4"
-
-lp2:
-    name: "Piotrowska"
+  - name: "Kierownik Oddziału LP II"
+    shortName: "LP2"
     queue: "62"
     id: "6"
