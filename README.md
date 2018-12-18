@@ -2,7 +2,38 @@
 
 [![Build Status](https://api.travis-ci.org/dyrkin/rezerwacje-duw-go.svg?branch=master)](https://travis-ci.org/dyrkin/rezerwacje-duw-go) [![Github Release](https://img.shields.io/badge/release-1.0.5-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.5)
 
-### To begin reservation
+## Overview
+
+This application will help you to make:
+1. Reservation of a visit for making a legalization of foreigners
+2. Reservation of a visit to head of department
+
+## Examples
+1. Reservation of a visit for making a legalization of foreigners in any city
+
+    ```bash
+    $ ./rezerwacje-duw-go-osx application
+    ```
+    
+2. Reservation of a visit for making a legalization of foreigners in cities Wrocław and Legnica
+
+    ```bash
+    $ ./rezerwacje-duw-go-osx application city WRO LG
+    ```
+
+3. Reservation of a visit to head of LP1 department
+
+    ```bash
+    $ ./rezerwacje-duw-go-osx headof department LP1
+    ```
+
+4. Reservation of a visit to head of LP2 department
+
+    ```bash
+    $ ./rezerwacje-duw-go-osx headof department LP2
+    ```
+
+## To begin reservation
 
 1. download binary file from the [releases](https://github.com/dyrkin/rezerwacje-duw-go/releases) page.
 
@@ -31,24 +62,8 @@
 
 7. close the app by pressing any key.
 8. check your email or DUW site.
-9. usage examples:
-    - Reservation of a visit for making a legalization of foreigners in any city
 
-        ```$ ./rezerwacje-duw-go-osx application```
-
-    - Reservation of a visit for making a legalization of foreigners in cities Wrocław and Legnica
-
-        ```$ ./rezerwacje-duw-go-osx application city WRO LG```
-
-    - Reservation of a visit to head of LP1 department
-
-        ```$ ./rezerwacje-duw-go-osx headof department LP1```
-
-    - Reservation of a visit to head of LP2 department
-
-        ```$ ./rezerwacje-duw-go-osx headof department LP2```
-
-### To run application from the source code
+## To run application from the source code
 
 1. install `golang` of min version `1.11`.
 
