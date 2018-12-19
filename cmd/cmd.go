@@ -1,10 +1,13 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 )
+
+const ApplicationCommand = "application"
+const HeadofCommand = "headof"
+const HelpCommand = "help"
 
 var help = `
 Usage:
@@ -42,25 +45,25 @@ func ParseArgs() (string, []string, error) {
 	if len(args) != 0 {
 		command := args[0]
 		switch command {
-		case "application":
+		case ApplicationCommand:
 			if len(args) > 1 {
 				option := args[1]
 				if option == "city" {
 					if len(args) > 2 {
 						return command, args[2:], nil
 					}
-					return "", nil, errors.New("At least on city must be specified after city option")
+					return "", nil, fmt.Errorf("At least on city must be specified after city option")
 				}
 				return "", nil, fmt.Errorf("Unknown option [%s]", option)
 			}
 			return command, nil, nil
-		case "headof":
+		case HeadofCommand:
 			if len(args) > 2 {
 				return command, args[2:], nil
 			}
 			return "", nil, fmt.Errorf("No department given")
-		case "help":
-			return "", nil, fmt.Errorf("Help")
+		case HelpCommand:
+			return command, nil, nil
 		default:
 			return "", nil, fmt.Errorf("Unknown command [%s]", command)
 		}
