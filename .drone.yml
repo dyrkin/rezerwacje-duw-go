@@ -1,0 +1,20 @@
+pipeline:
+  build:
+    image: golang
+    commands:
+      - go install
+
+  bin:
+    image: golang
+    commands:
+      - ./release.sh
+    when:
+      event: tag
+
+  publish_release:
+    image: plugins/github-release
+    api_key:
+      from_secret: github_api_key
+    files: bin/*
+    when:
+      event: tag
