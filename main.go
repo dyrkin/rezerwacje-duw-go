@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dyrkin/rezerwacje-duw-go/queue"
+
 	"github.com/dyrkin/rezerwacje-duw-go/captcha"
 	"github.com/dyrkin/rezerwacje-duw-go/cmd"
 	"github.com/dyrkin/rezerwacje-duw-go/config"
@@ -22,6 +24,8 @@ var slotsRegex = regexp.MustCompile("lock\\(.*?>([\\d:]+)<\\/a>")
 var mutex = &sync.Mutex{}
 
 var client = session.New()
+
+var reservationQueue = queue.New()
 
 func extractLatestDate(entityHTML string) string {
 	groups := dateEventsRegex.FindStringSubmatch(entityHTML)
@@ -137,18 +141,30 @@ func lock(entity *config.Entity, time string) (slot string, locked bool) {
 	return "", false
 }
 
-func makeReservation(entity *config.Entity, date string, term string, userData []*config.Row) {
-	time := fmt.Sprintf("%s %s:00", date, term)
-	if slot, ok := lock(entity, time); ok {
-		reserve(entity, time, slot, userData)
+func initQueueProcessor() {
+	go func() {
+		for {
+			reservationFn := reservationQueue.Take()
+			reservationFn()
+		}
+	}()
+}
+
+func scheduleReservation(entity *config.Entity, date string, term string, userData []*config.Row) {
+	reservationFn := func() {
+		time := fmt.Sprintf("%s %s:00", date, term)
+		if slot, ok := lock(entity, time); ok {
+			reserve(entity, time, slot, userData)
+		}
 	}
+	reservationQueue.Push(reservationFn)
 }
 
 func process(entity config.Entity, date string, userData []*config.Row) {
 	log.Infof("Scanning terms for entity %q and date %q", entity.Name, date)
 	terms := terms(&entity, date)
 	for _, term := range terms {
-		makeReservation(&entity, date, term, userData)
+		scheduleReservation(&entity, date, term, userData)
 	}
 	go process(entity, date, userData)
 }
@@ -265,6 +281,7 @@ func processCommand(command string, args []string) {
 				enabledDepartment := args[0]
 				entities = collectActiveDepartments(enabledDepartment)
 			}
+			initQueueProcessor()
 			processEntities(entities, userData)
 		} else {
 			log.Infoln("Invalid login or password")
