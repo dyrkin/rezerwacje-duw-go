@@ -13,8 +13,8 @@ type Headers map[string]string
 //Cookies kay/value storage
 type Cookies map[string]string
 
-type makeable interface {
-	Make() *http.Request
+type Builder interface {
+	Build() *http.Request
 }
 
 //PostRequestBuilder is a post request builder interface
@@ -23,7 +23,7 @@ type PostRequestBuilder interface {
 	Cookies(cookies Cookies) PostRequestBuilder
 	Form(body url.Values) PostRequestBuilder
 	Body(body string) PostRequestBuilder
-	makeable
+	Builder
 }
 
 type postRequest struct {
@@ -37,7 +37,7 @@ type postRequest struct {
 type GetRequestBuilder interface {
 	Headers(headers Headers) GetRequestBuilder
 	Cookies(cookies Cookies) GetRequestBuilder
-	makeable
+	Builder
 }
 
 type getRequest struct {
@@ -107,13 +107,13 @@ func (pr *postRequest) Body(body string) PostRequestBuilder {
 	return pr
 }
 
-//Make builds http.Request from PartialRequest
-func (pr *postRequest) Make() *http.Request {
+//Build builds http.Request from PartialRequest
+func (pr *postRequest) Build() *http.Request {
 	return pr.request(pr.body, pr.headers, pr.cookies)
 }
 
-//Make builds http.Request from PartialRequest
-func (pr *getRequest) Make() *http.Request {
+//Build builds http.Request from PartialRequest
+func (pr *getRequest) Build() *http.Request {
 	return pr.request(pr.headers, pr.cookies)
 }
 

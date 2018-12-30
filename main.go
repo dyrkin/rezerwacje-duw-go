@@ -25,7 +25,7 @@ var mutex = &sync.Mutex{}
 
 var client = session.New()
 
-var reservationQueue = queue.New()
+var reservationQueue = queue.NewWithLimit(5)
 
 func extractLatestDate(entityHTML string) string {
 	groups := dateEventsRegex.FindStringSubmatch(entityHTML)
@@ -46,14 +46,14 @@ func extractTerms(termsHTML string) []string {
 
 func acceptTerms(entity *config.Entity) {
 	url := fmt.Sprintf("https://rezerwacje.duw.pl/reservations/opmenus/terms/%s/%s?accepted=true", entity.Queue, entity.ID)
-	acceptTermsRequest := session.Get(url).Make()
+	acceptTermsRequest := session.Get(url)
 	client.SafeSend(acceptTermsRequest)
 }
 
 func latestDate(entity *config.Entity) string {
 	acceptTerms(entity)
 	url := fmt.Sprintf("https://rezerwacje.duw.pl/reservations/pol/queues/%s/%s", entity.Queue, entity.ID)
-	entityRequest := session.Get(url).Make()
+	entityRequest := session.Get(url)
 	entityHTML := client.SafeSend(entityRequest).AsString()
 	return extractLatestDate(entityHTML)
 }
@@ -61,7 +61,7 @@ func latestDate(entity *config.Entity) string {
 func terms(entity *config.Entity, date string) []string {
 	url := fmt.Sprintf("https://rezerwacje.duw.pl/reservations/pol/queues/%s/%s/%s", entity.Queue, entity.ID, date)
 	headers := session.Headers{"X-Requested-With": "XMLHttpRequest"}
-	termsRequest := session.Get(url).Headers(headers).Make()
+	termsRequest := session.Get(url).Headers(headers)
 	termsHTML := client.SafeSend(termsRequest).AsString()
 	terms := extractTerms(termsHTML)
 	log.Infof("Available terms for %q: %q", entity.Name, terms)
@@ -69,14 +69,14 @@ func terms(entity *config.Entity, date string) []string {
 }
 
 func recognizeCaptcha() string {
-	captchaRequest := session.Get("https://rezerwacje.duw.pl/reservations/captcha").Make()
+	captchaRequest := session.Get("https://rezerwacje.duw.pl/reservations/captcha")
 	captchaImage := client.SafeSend(captchaRequest).AsBytes()
 	return captcha.RecognizeCaptcha(&captchaImage)
 }
 
 func checkCaptcha(captcha string) bool {
 	body := url.Values{"code": {captcha}}
-	checkCaptchaRequest := session.Post("https://rezerwacje.duw.pl/reservations/captcha/check").Form(body).Make()
+	checkCaptchaRequest := session.Post("https://rezerwacje.duw.pl/reservations/captcha/check").Form(body)
 	result := client.SafeSend(checkCaptchaRequest).AsString()
 	return result == "true"
 }
@@ -90,13 +90,13 @@ func postUserData(entity *config.Entity, slot string, userData []*config.Row) {
 	body := renderUserDataToJSON(userData)
 	url := fmt.Sprintf("https://rezerwacje.duw.pl/reservations/reservations/updateFormData/%s/%s", slot, entity.ID)
 	headers := session.Headers{"Content-Type": "application/json; charset=utf-8"}
-	postUserDataRequest := session.Post(url).Body(body).Headers(headers).Make()
+	postUserDataRequest := session.Post(url).Body(body).Headers(headers)
 	client.SafeSend(postUserDataRequest)
 }
 
 func confirmTerm(entity *config.Entity, slot string) {
 	url := fmt.Sprintf("https://rezerwacje.duw.pl/reservations/reservations/reserv/%s/%s", slot, entity.ID)
-	confirmTermRequest := session.Get(url).Make()
+	confirmTermRequest := session.Get(url)
 	client.SafeSend(confirmTermRequest)
 }
 
@@ -120,7 +120,7 @@ func tryLock(entity *config.Entity, time string) string {
 	for i := 0; i < 5; i++ {
 		go func() {
 			body := url.Values{"time": {time}, "queue": {entity.Queue}}
-			lockRequest := session.Post("https://rezerwacje.duw.pl/reservations/reservations/lock").Form(body).Make()
+			lockRequest := session.Post("https://rezerwacje.duw.pl/reservations/reservations/lock").Form(body)
 			lockResult <- client.SafeSend(lockRequest).AsString()
 		}()
 	}
@@ -161,7 +161,7 @@ func scheduleReservation(entity *config.Entity, date string, term string, userDa
 }
 
 func process(entity config.Entity, date string, userData []*config.Row) {
-	log.Infof("Scanning terms for entity %q and date %q", entity.Name, date)
+	log.Infof("Scanning terms for %q and date %q", entity.Name, date)
 	terms := terms(&entity, date)
 	for _, term := range terms {
 		scheduleReservation(&entity, date, term, userData)
@@ -171,7 +171,7 @@ func process(entity config.Entity, date string, userData []*config.Row) {
 
 func login() bool {
 	body := url.Values{"data[User][email]": {config.UserConf().Login}, "data[User][password]": {config.UserConf().Password}}
-	loginRequest := session.Post("https://rezerwacje.duw.pl/reservations/pol/login").Form(body).Make()
+	loginRequest := session.Post("https://rezerwacje.duw.pl/reservations/pol/login").Form(body)
 	loginResponse := client.SafeSend(loginRequest)
 	return loginResponse.Response.StatusCode != 200
 }

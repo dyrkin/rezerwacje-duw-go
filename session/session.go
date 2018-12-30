@@ -51,18 +51,23 @@ func New() *Session {
 
 //Send simply sends http request
 func (s *Session) Send(request *http.Request) (*http.Response, error) {
-	return s.Do(request)
+	debugHTTP("Sending request:\n%s\n", request)
+	resp, err := s.Do(request)
+	if err == nil {
+		debugHTTP("Received response:\n%s\n", resp)
+	} else {
+		log.Errorf("Received error:\n%s", err)
+	}
+	return resp, err
 }
 
 //SafeSend safely sends http request. In case of error it tries again
-func (s *Session) SafeSend(request *http.Request) *Response {
-	debugHTTP("Sending request:\n%s\n", request)
-	response, err := s.Send(request)
+func (s *Session) SafeSend(requestBuilder Builder) *Response {
+	response, err := s.Send(requestBuilder.Build())
 	if err != nil {
 		log.Errorf("Error occurred while sending request. Try again\n%s", err)
-		return s.SafeSend(request)
+		return s.SafeSend(requestBuilder)
 	}
-	debugHTTP("Received response:\n%s\n", response)
 	return &Response{response}
 }
 
