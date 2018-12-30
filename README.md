@@ -1,6 +1,8 @@
 # Rezerwacje DUW
 
-[![Build Status](https://api.travis-ci.org/dyrkin/rezerwacje-duw-go.svg?branch=master)](https://travis-ci.org/dyrkin/rezerwacje-duw-go) [![Github Release](https://img.shields.io/badge/release-1.0.6-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.6)
+
+[![Build Status](https://cloud.drone.io/api/badges/dyrkin/rezerwacje-duw-go/status.svg)](https://cloud.drone.io/dyrkin/rezerwacje-duw-go)
+ [![Github Release](https://img.shields.io/badge/release-1.0.6-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.6)
 
 ## Overview
 
