@@ -65,7 +65,6 @@ func terms(entity *config.Entity, date string) []string {
 	termsHTML := client.SafeSend(termsRequest).AsString()
 	terms := extractTerms(termsHTML)
 	log.Infof("Available terms for %q: %q", entity.Name, terms)
-	terms = append(terms, "13:20")
 	return terms
 }
 

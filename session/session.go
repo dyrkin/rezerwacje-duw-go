@@ -35,8 +35,8 @@ func New() *Session {
 	}
 	transport := http.DefaultTransport.(*http.Transport)
 	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	transport.MaxIdleConnsPerHost = 1024
-	transport.TLSHandshakeTimeout = 5 * time.Second
+	transport.MaxIdleConnsPerHost = 30
+	transport.TLSHandshakeTimeout = 10 * time.Second
 	session := &Session{}
 	session.Session = csession.NewSession(transport, dontFollowRedirects, jar)
 	session.Session.HeadersFunc = func(req *http.Request) {
