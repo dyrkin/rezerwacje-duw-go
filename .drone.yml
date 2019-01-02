@@ -3,6 +3,7 @@ pipeline:
     image: golang
     commands:
       - go install
+      - go test ./...
 
   bin:
     image: golang
