@@ -22,7 +22,8 @@ strings:
   lpReferenceNumberHeader: "sygnatura sprawy lub nazwisko inspektora prowadzącego postępowanie"
   lpSubmissionDateHeader: "wpisz datę złożenia wniosku (przesłania drogą pocztową)"
 
-parallelismFactor: 4 #minimum 1
+parallelismFactor: 2 #minimum 1
+https: false
 
 cities:
   - name: "Jelenia Góra"

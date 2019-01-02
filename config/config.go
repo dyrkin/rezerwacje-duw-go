@@ -47,6 +47,7 @@ type Strings struct {
 type ApplicationConfig struct {
 	Strings           Strings
 	ParallelismFactor int
+	Https             bool
 	Cities            []*Entity
 	Departments       []*Entity
 }
