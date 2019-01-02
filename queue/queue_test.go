@@ -1,9 +1,11 @@
 package queue
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/dyrkin/rezerwacje-duw-go/config"
 	. "gopkg.in/check.v1"
 )
 
@@ -13,85 +15,76 @@ type MySuite struct{}
 
 var _ = Suite(&MySuite{})
 
-func (s *MySuite) TestOrdering1(c *C) {
+func (s *MySuite) TestUniquiness(c *C) {
 	queue := New()
-	switches := [3]byte{}
-	for i := range switches {
-		fn := func(ind int) func() {
-			return func() { switches[ind] = 1 }
-		}(i)
-		queue.Push(fn)
+	userData := []*config.Row{&config.Row{Name: "hello", Value: "world"}}
+	entity := &config.Entity{Name: "name", ShortName: "short", Queue: "10", ID: "100"}
+	reservation := &Reservation{Entity: entity, Date: "2017-07-23", Term: "13:20", UserData: &userData}
+	for i := 0; i < 3; i++ {
+		queue.Push(reservation)
 	}
-	c.Assert(queue.Len(), Equals, 3)
-	queue.Pop()()
-	c.Assert(switches, DeepEquals, [3]byte{0, 0, 1})
-	c.Assert(queue.Len(), Equals, 2)
+	c.Assert(queue.Len(), Equals, 1)
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-23", Term: "13:20", UserData: &userData})
+	c.Assert(queue.Len(), Equals, 0)
+	queue.Push(reservation)
+	c.Assert(queue.Len(), Equals, 1)
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-23", Term: "13:20", UserData: &userData})
+	c.Assert(queue.Len(), Equals, 0)
 }
 
-func (s *MySuite) TestOrdering2(c *C) {
+func (s *MySuite) TestOrdering(c *C) {
 	queue := New()
-	switches := [4]byte{}
-	for i := range switches {
-		fn := func(ind int) func() {
-			return func() { switches[ind] = 1 }
-		}(i)
-		queue.Push(fn)
+	userData := []*config.Row{&config.Row{Name: "hello", Value: "world"}}
+	entity := &config.Entity{Name: "name", ShortName: "short", Queue: "10", ID: "100"}
+	for i := 0; i < 3; i++ {
+		reservation := &Reservation{Entity: entity, Date: fmt.Sprintf("2017-07-2%d", i), Term: "13:20", UserData: &userData}
+		queue.Push(reservation)
 	}
-	c.Assert(queue.Len(), Equals, 4)
-	queue.Pop()()
-	queue.Pop()
-	queue.Pop()()
-	queue.Pop()
-	c.Assert(switches, DeepEquals, [4]byte{0, 1, 0, 1})
+	c.Assert(queue.Len(), Equals, 3)
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-22", Term: "13:20", UserData: &userData})
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-21", Term: "13:20", UserData: &userData})
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-20", Term: "13:20", UserData: &userData})
 	c.Assert(queue.Len(), Equals, 0)
 }
 
 func (s *MySuite) TestTake(c *C) {
 	queue := New()
-	switches := [4]byte{}
+	userData := []*config.Row{&config.Row{Name: "hello", Value: "world"}}
+	entity := &config.Entity{Name: "name", ShortName: "short", Queue: "10", ID: "100"}
+
 	go func() {
-		for i := range switches {
+		for i := 0; i < 3; i++ {
 			time.Sleep(100 * time.Millisecond)
-			fn := func(ind int) func() {
-				return func() { switches[ind] = 1 }
-			}(i)
-			queue.Push(fn)
+			reservation := &Reservation{Entity: entity, Date: fmt.Sprintf("2017-07-2%d", i), Term: "13:20", UserData: &userData}
+			queue.Push(reservation)
 		}
 	}()
-	queue.Take()()
+
+	c.Assert(queue.Take(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-20", Term: "13:20", UserData: &userData})
 	c.Assert(queue.Len(), Equals, 0)
-	queue.Take()
+	c.Assert(queue.Take(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-21", Term: "13:20", UserData: &userData})
 	c.Assert(queue.Len(), Equals, 0)
-	queue.Take()()
-	c.Assert(queue.Len(), Equals, 0)
-	queue.Take()
-	c.Assert(queue.Len(), Equals, 0)
-	c.Assert(switches, DeepEquals, [4]byte{1, 0, 1, 0})
+	c.Assert(queue.Take(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-22", Term: "13:20", UserData: &userData})
 	c.Assert(queue.Len(), Equals, 0)
 }
 
 func (s *MySuite) TestLimit(c *C) {
 	queue := NewWithLimit(3)
-	switches := [5]byte{}
-	for i := range switches {
-		if i == 4 {
-			break
-		}
-		fn := func(ind int) func() {
-			return func() {
-				switches[ind] = byte(ind + 1)
-			}
-		}(i)
-		time.Sleep(1 * time.Microsecond)
-		queue.Push(fn)
+	userData := []*config.Row{&config.Row{Name: "hello", Value: "world"}}
+	entity := &config.Entity{Name: "name", ShortName: "short", Queue: "10", ID: "100"}
+	for i := 0; i < 5; i++ {
+		reservation := &Reservation{Entity: entity, Date: fmt.Sprintf("2017-07-2%d", i), Term: "13:20", UserData: &userData}
+		queue.Push(reservation)
 	}
 	c.Assert(queue.Len(), Equals, 3)
-	queue.Push(func() {
-		switches[len(switches)-1] = 9
-	})
-	queue.Pop()()
-	queue.Pop()()
-	queue.Pop()()
-	c.Assert(queue.Pop(), DeepEquals, ReservationFn(nil))
-	c.Assert(switches, DeepEquals, [5]byte{0, 0, 3, 4, 9})
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-24", Term: "13:20", UserData: &userData})
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-23", Term: "13:20", UserData: &userData})
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-22", Term: "13:20", UserData: &userData})
+	var r *Reservation
+	c.Assert(queue.Pop(), DeepEquals, r)
+	c.Assert(queue.Len(), Equals, 0)
+	queue.Push(&Reservation{Entity: entity, Date: "2017-07-22", Term: "13:20", UserData: &userData})
+	c.Assert(queue.Len(), Equals, 1)
+	c.Assert(queue.Pop(), DeepEquals, &Reservation{Entity: entity, Date: "2017-07-22", Term: "13:20", UserData: &userData})
+	c.Assert(queue.Len(), Equals, 0)
 }

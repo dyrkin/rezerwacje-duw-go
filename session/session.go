@@ -2,10 +2,12 @@ package session
 
 import (
 	"crypto/tls"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httputil"
+	"time"
 
 	"github.com/dyrkin/rezerwacje-duw-go/log"
 
@@ -31,8 +33,10 @@ func New() *Session {
 	dontFollowRedirects := func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
 	}
-	transport := http.DefaultTransport
-	transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	transport := http.DefaultTransport.(*http.Transport)
+	transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	transport.MaxIdleConnsPerHost = 1024
+	transport.TLSHandshakeTimeout = 5 * time.Second
 	session := &Session{}
 	session.Session = csession.NewSession(transport, dontFollowRedirects, jar)
 	session.Session.HeadersFunc = func(req *http.Request) {
@@ -40,10 +44,10 @@ func New() *Session {
 		userAgent := "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
 		encoding := "gzip, deflate"
 		acceptLanguage := "ru,en-US;q=0.9,en;q=0.8"
+		lang := "pol"
 		req.Header.Set("User-Agent", userAgent)
 		req.Header.Set("Accept-Encoding", encoding)
 		req.Header.Set("Accept-Language", acceptLanguage)
-		lang := "pol"
 		req.AddCookie(&http.Cookie{Name: "config[lang]", Value: lang})
 	}
 	return session
@@ -81,6 +85,12 @@ func (r *Response) AsBytes() []byte {
 	defer r.Response.Body.Close()
 	resp, _ := ioutil.ReadAll(r.Response.Body)
 	return resp
+}
+
+func (r *Response) DiscardBody() *Response {
+	defer r.Response.Body.Close()
+	io.Copy(ioutil.Discard, r.Response.Body)
+	return r
 }
 
 func debugHTTP(format string, r interface{}) {

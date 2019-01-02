@@ -4,20 +4,28 @@ import (
 	"container/heap"
 	"sync"
 	"time"
+
+	"github.com/dyrkin/rezerwacje-duw-go/config"
 )
 
+type Reservation struct {
+	Entity   *config.Entity
+	Date     string
+	Term     string
+	UserData *[]*config.Row
+}
+
 type item struct {
-	reservationFn ReservationFn
-	priority      int64
-	index         int
+	reservation *Reservation
+	priority    int64
+	index       int
 }
 
 type priorityQueue []*item
 
-type ReservationFn func()
-
 type ReservationQueue struct {
 	pq           *priorityQueue
+	items        map[Reservation]bool
 	time         time.Time
 	lock         *sync.Mutex
 	pushLock     *sync.Mutex
@@ -55,11 +63,12 @@ func (pq *priorityQueue) Pop() interface{} {
 
 func New() *ReservationQueue {
 	pq := &priorityQueue{}
+	items := map[Reservation]bool{}
 	heap.Init(pq)
 	lock := &sync.Mutex{}
 	pushLock := &sync.Mutex{}
 	nonEmptyCond := sync.NewCond(lock)
-	return &ReservationQueue{pq, time.Now(), lock, pushLock, nonEmptyCond, -1}
+	return &ReservationQueue{pq, items, time.Now(), lock, pushLock, nonEmptyCond, -1}
 }
 
 func NewWithLimit(limit int) *ReservationQueue {
@@ -72,9 +81,9 @@ func (pq *priorityQueue) fix(i int) {
 	heap.Fix(pq, i)
 }
 
-func (q *ReservationQueue) update(fn ReservationFn, i int) {
+func (q *ReservationQueue) update(reservation *Reservation, i int) {
 	item := (*q.pq)[i]
-	item.reservationFn = fn
+	item.reservation = reservation
 	item.priority = int64(time.Now().Sub(q.time))
 	q.pq.fix(i)
 }
@@ -83,6 +92,7 @@ func (q *ReservationQueue) push(item *item) {
 	heap.Push(q.pq, item)
 }
 
+//TODO Find more optimal way how to find index of item with lowest priority
 func (pq *priorityQueue) Lowest() int {
 	var item *item
 	for _, v := range *pq {
@@ -93,32 +103,48 @@ func (pq *priorityQueue) Lowest() int {
 	return item.index
 }
 
-func (q *ReservationQueue) Push(fn ReservationFn) {
+func (pq *priorityQueue) Index(reservation Reservation) int {
+	for _, v := range *pq {
+		if *v.reservation == reservation {
+			return v.index
+		}
+	}
+	return -1
+}
+
+func (q *ReservationQueue) Push(reservation *Reservation) {
 	q.pushLock.Lock()
 	defer q.pushLock.Unlock()
-	if q.limit != -1 && q.len() == q.limit {
-		q.update(fn, q.pq.Lowest())
+	if _, ok := q.items[*reservation]; ok {
+		q.update(reservation, q.pq.Index(*reservation))
 	} else {
-		item := &item{reservationFn: fn, priority: int64(time.Now().Sub(q.time))}
-		q.push(item)
+		if q.limit != -1 && q.len() == q.limit {
+			q.update(reservation, q.pq.Lowest())
+		} else {
+			item := &item{reservation: reservation, priority: int64(time.Now().Sub(q.time))}
+			q.push(item)
+		}
 	}
+	q.items[*reservation] = true
 	q.nonEmptyCond.Signal()
 }
 
-func (q *ReservationQueue) pop() ReservationFn {
+func (q *ReservationQueue) pop() *Reservation {
 	if q.pq.Len() > 0 {
-		return heap.Pop(q.pq).(*item).reservationFn
+		reservation := heap.Pop(q.pq).(*item).reservation
+		delete(q.items, *reservation)
+		return reservation
 	}
 	return nil
 }
 
-func (q *ReservationQueue) Pop() ReservationFn {
+func (q *ReservationQueue) Pop() *Reservation {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	return q.pop()
 }
 
-func (q *ReservationQueue) Take() ReservationFn {
+func (q *ReservationQueue) Take() *Reservation {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 	for q.pq.Len() == 0 {

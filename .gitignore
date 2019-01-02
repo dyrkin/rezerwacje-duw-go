@@ -1,4 +1,5 @@
-user.yml
+user.yml*
+!user.yml.template
 .DS_Store
 go.sum
 .vscode/

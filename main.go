@@ -47,7 +47,7 @@ func extractTerms(termsHTML string) []string {
 func acceptTerms(entity *config.Entity) {
 	url := fmt.Sprintf("https://rezerwacje.duw.pl/reservations/opmenus/terms/%s/%s?accepted=true", entity.Queue, entity.ID)
 	acceptTermsRequest := session.Get(url)
-	client.SafeSend(acceptTermsRequest)
+	client.SafeSend(acceptTermsRequest).DiscardBody()
 }
 
 func latestDate(entity *config.Entity) string {
@@ -65,6 +65,7 @@ func terms(entity *config.Entity, date string) []string {
 	termsHTML := client.SafeSend(termsRequest).AsString()
 	terms := extractTerms(termsHTML)
 	log.Infof("Available terms for %q: %q", entity.Name, terms)
+	terms = append(terms, "13:20")
 	return terms
 }
 
@@ -86,21 +87,21 @@ func renderUserDataToJSON(userData []*config.Row) string {
 	return string(jsonBytes)
 }
 
-func postUserData(entity *config.Entity, slot string, userData []*config.Row) {
-	body := renderUserDataToJSON(userData)
+func postUserData(entity *config.Entity, slot string, userData *[]*config.Row) {
+	body := renderUserDataToJSON(*userData)
 	url := fmt.Sprintf("https://rezerwacje.duw.pl/reservations/reservations/updateFormData/%s/%s", slot, entity.ID)
 	headers := session.Headers{"Content-Type": "application/json; charset=utf-8"}
 	postUserDataRequest := session.Post(url).Body(body).Headers(headers)
-	client.SafeSend(postUserDataRequest)
+	client.SafeSend(postUserDataRequest).DiscardBody()
 }
 
 func confirmTerm(entity *config.Entity, slot string) {
 	url := fmt.Sprintf("https://rezerwacje.duw.pl/reservations/reservations/reserv/%s/%s", slot, entity.ID)
 	confirmTermRequest := session.Get(url)
-	client.SafeSend(confirmTermRequest)
+	client.SafeSend(confirmTermRequest).DiscardBody()
 }
 
-func reserve(entity *config.Entity, time string, slot string, userData []*config.Row) {
+func reserve(entity *config.Entity, time string, slot string, userData *[]*config.Row) {
 	log.Infof("Attempt to make reservation for %q, slot %q and time %q", entity.Name, slot, time)
 	recognizedCaptcha := recognizeCaptcha()
 	log.Infof("Captcha value is %q", recognizedCaptcha)
@@ -144,23 +145,21 @@ func lock(entity *config.Entity, time string) (slot string, locked bool) {
 func initQueueProcessor() {
 	go func() {
 		for {
-			reservationFn := reservationQueue.Take()
-			reservationFn()
+			reservation := reservationQueue.Take()
+			time := fmt.Sprintf("%s %s:00", reservation.Date, reservation.Term)
+			if slot, ok := lock(reservation.Entity, time); ok {
+				reserve(reservation.Entity, time, slot, reservation.UserData)
+			}
 		}
 	}()
 }
 
-func scheduleReservation(entity *config.Entity, date string, term string, userData []*config.Row) {
-	reservationFn := func() {
-		time := fmt.Sprintf("%s %s:00", date, term)
-		if slot, ok := lock(entity, time); ok {
-			reserve(entity, time, slot, userData)
-		}
-	}
-	reservationQueue.Push(reservationFn)
+func scheduleReservation(entity *config.Entity, date string, term string, userData *[]*config.Row) {
+	reservation := &queue.Reservation{Entity: entity, Date: date, Term: term, UserData: userData}
+	reservationQueue.Push(reservation)
 }
 
-func process(entity config.Entity, date string, userData []*config.Row) {
+func process(entity config.Entity, date string, userData *[]*config.Row) {
 	log.Infof("Scanning terms for %q and date %q", entity.Name, date)
 	terms := terms(&entity, date)
 	for _, term := range terms {
@@ -172,7 +171,7 @@ func process(entity config.Entity, date string, userData []*config.Row) {
 func login() bool {
 	body := url.Values{"data[User][email]": {config.UserConf().Login}, "data[User][password]": {config.UserConf().Password}}
 	loginRequest := session.Post("https://rezerwacje.duw.pl/reservations/pol/login").Form(body)
-	loginResponse := client.SafeSend(loginRequest)
+	loginResponse := client.SafeSend(loginRequest).DiscardBody()
 	return loginResponse.Response.StatusCode != 200
 }
 
@@ -255,7 +254,7 @@ func await() {
 func processEntities(entities map[*config.Entity]string, userData []*config.Row) {
 	for i := 0; i < config.ApplicationConf().ParallelismFactor; i++ {
 		for entity, date := range entities {
-			go process(*entity, date, userData)
+			go process(*entity, date, &userData)
 		}
 	}
 	await()

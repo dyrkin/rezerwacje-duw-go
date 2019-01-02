@@ -78,14 +78,6 @@ func (uc UserConfig) IsPermanentResidence() bool {
 	return uc.ResidenceType != "temporary"
 }
 
-var userConf *UserConfig
-var applicationConf *ApplicationConfig
-
-func init() {
-	userConf = initializeUserConfig()
-	applicationConf = initializeApplicationConfig()
-}
-
 func unmarshalConfig(path string, configuration interface{}) (err error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -125,17 +117,19 @@ func initializeApplicationConfig() *ApplicationConfig {
 
 //UserConf returns config with user specific details
 func UserConf() *UserConfig {
-	return userConf
+	return initializeUserConfig()
 }
 
 //ApplicationConf returns application config
 func ApplicationConf() *ApplicationConfig {
-	return applicationConf
+	return initializeApplicationConfig()
 }
 
 //CollectApplicationSubmissionData returns user data related to
 //application submission in "ready to convert to json" format
 func CollectApplicationSubmissionData() []*Row {
+	userConf := UserConf()
+	applicationConf := ApplicationConf()
 	data := []*Row{}
 	strings := applicationConf.Strings
 	if userConf.IsPermanentResidence() {
@@ -170,6 +164,8 @@ func CollectApplicationSubmissionData() []*Row {
 //CollectHeadOfDepartmentData returns user data related to
 //making reservation of a visit to head of department in "ready to convert to json" format
 func CollectHeadOfDepartmentData() []*Row {
+	userConf := UserConf()
+	applicationConf := ApplicationConf()
 	data := []*Row{}
 	strings := applicationConf.Strings
 	data = append(data, &Row{strings.LpInfo, ""})
