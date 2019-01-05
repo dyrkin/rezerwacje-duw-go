@@ -57,7 +57,7 @@ func u(url string) string {
 func acceptTerms(entity *config.Entity) {
 	url := u(fmt.Sprintf("rezerwacje.duw.pl/reservations/opmenus/terms/%s/%s?accepted=true", entity.Queue, entity.ID))
 	acceptTermsRequest := session.Get(url)
-	client.SafeSend(acceptTermsRequest).DiscardBody()
+	client.SafeSend(acceptTermsRequest).Drain()
 }
 
 func latestDate(entity *config.Entity) string {
@@ -101,13 +101,13 @@ func postUserData(entity *config.Entity, slot string, userData *[]*config.Row) {
 	url := u(fmt.Sprintf("rezerwacje.duw.pl/reservations/reservations/updateFormData/%s/%s", slot, entity.ID))
 	headers := session.Headers{"Content-Type": "application/json; charset=utf-8"}
 	postUserDataRequest := session.Post(url).Body(body).Headers(headers)
-	client.SafeSend(postUserDataRequest).DiscardBody()
+	client.SafeSend(postUserDataRequest).Drain()
 }
 
 func confirmTerm(entity *config.Entity, slot string) {
 	url := u(fmt.Sprintf("rezerwacje.duw.pl/reservations/reservations/reserv/%s/%s", slot, entity.ID))
 	confirmTermRequest := session.Get(url)
-	client.SafeSend(confirmTermRequest).DiscardBody()
+	client.SafeSend(confirmTermRequest).Drain()
 }
 
 func reserve(entity *config.Entity, time string, slot string, userData *[]*config.Row) {
@@ -180,7 +180,7 @@ func process(entity config.Entity, date string, userData *[]*config.Row) {
 func login() bool {
 	body := url.Values{"data[User][email]": {config.UserConf().Login}, "data[User][password]": {config.UserConf().Password}}
 	loginRequest := session.Post(u("rezerwacje.duw.pl/reservations/pol/login")).Form(body)
-	loginResponse := client.SafeSend(loginRequest).DiscardBody()
+	loginResponse := client.SafeSend(loginRequest).Drain()
 	return loginResponse.Response.StatusCode != 200
 }
 

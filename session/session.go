@@ -87,7 +87,7 @@ func (r *Response) AsBytes() []byte {
 	return resp
 }
 
-func (r *Response) DiscardBody() *Response {
+func (r *Response) Drain() *Response {
 	defer r.Response.Body.Close()
 	io.Copy(ioutil.Discard, r.Response.Body)
 	return r
