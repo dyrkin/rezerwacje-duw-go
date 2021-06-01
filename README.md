@@ -1,5 +1,6 @@
 # Rezerwacje DUW
 
+## !!!The code is outdated
 
 [![Build Status](https://cloud.drone.io/api/badges/dyrkin/rezerwacje-duw-go/status.svg)](https://cloud.drone.io/dyrkin/rezerwacje-duw-go)
  [![Github Release](https://img.shields.io/badge/release-1.0.7-blue.svg)](https://github.com/dyrkin/rezerwacje-duw-go/releases/tag/v1.0.7)
